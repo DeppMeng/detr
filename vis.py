@@ -120,7 +120,7 @@ CLASSES = [
     'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
     'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A',
     'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier',
-    'toothbrush'
+    'toothbrush', 'non-object'
 ]
 
 # colors for visualization
@@ -204,8 +204,9 @@ for img_id in id_list:
         outputs = model(img, output_layer=output_layer)
 
         # keep only predictions with 0.7+ confidence
-        probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
-        keep = probas.max(-1).values > 0.5
+        probas = outputs['pred_logits'].softmax(-1)
+        # keep = probas.max(-1).values > 0.5
+        keep = [20, 92, 98]
         print(keep)
 
 
