@@ -209,9 +209,10 @@ for img_id in id_list:
 
         # keep only predictions with 0.7+ confidence
         probas = outputs['pred_logits'].softmax(-1)[0,:,:]
-        # keep = probas.max(-1).values > 0.5
-        keep = [20, 92, 98]
-        print(keep)
+        if i == 0:
+            probas_for_select = outputs['pred_logits'].softmax(-1)[0,:,:-1]
+            keep = probas.max(-1).values > 0.5
+            print(keep)
 
 
         # convert boxes from [0; 1] to image scales
