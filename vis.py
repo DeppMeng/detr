@@ -204,7 +204,7 @@ for img_id in id_list:
         outputs = model(img, output_layer=output_layer)
 
         # keep only predictions with 0.7+ confidence
-        probas = outputs['pred_logits'].softmax(-1)[0,:,:,:]
+        probas = outputs['pred_logits'].softmax(-1)[0,:,:]
         # keep = probas.max(-1).values > 0.5
         keep = [20, 92, 98]
         print(keep)
