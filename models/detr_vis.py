@@ -42,7 +42,7 @@ class DETR(nn.Module):
         self.aux_loss = aux_loss
         self.output_layer = output_layer
 
-    def forward(self, samples: NestedTensor):
+    def forward(self, samples: NestedTensor, output_layer=None):
         """ The forward expects a NestedTensor, which consists of:
                - samples.tensor: batched images, of shape [batch_size x 3 x H x W]
                - samples.mask: a binary mask of shape [batch_size x H x W], containing 1 on padded pixels
@@ -65,9 +65,11 @@ class DETR(nn.Module):
         assert mask is not None
         hs = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])[0]
 
+        if output_layer == None:
+            output_layer = self.output_layer
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()
-        out = {'pred_logits': outputs_class[self.output_layer], 'pred_boxes': outputs_coord[self.output_layer]}
+        out = {'pred_logits': outputs_class[output_layer], 'pred_boxes': outputs_coord[output_layer]}
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord)
         return out

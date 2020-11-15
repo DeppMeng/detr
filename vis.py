@@ -193,16 +193,15 @@ for img_id in id_list:
     # mean-std normalize the input image (batch-size: 1)
     img = transform(im).unsqueeze(0)
 
+    model, _, _ = build_vis_model(args)
+    checkpoint = torch.hub.load_state_dict_from_url(
+        args.resume, map_location='cpu', check_hash=True)
+    model.load_state_dict(checkpoint['model'])
+    model.eval();
     for i in range(6):
-        args.output_layer = i
-        model, _, _ = build_vis_model(args)
-        checkpoint = torch.hub.load_state_dict_from_url(
-            args.resume, map_location='cpu', check_hash=True)
-        model.load_state_dict(checkpoint['model'])
-        model.eval();
-
+        output_layer = i
         # propagate through the model
-        outputs = model(img)
+        outputs = model(img, output_layer=output_layer)
 
         # keep only predictions with 0.7+ confidence
         probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
