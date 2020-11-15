@@ -14,7 +14,7 @@ from torch import nn
 from torchvision.models import resnet50
 import torchvision.transforms as T
 torch.set_grad_enabled(False);
-from models import build_model
+from models import build_vis_model
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Set transformer detector', add_help=False)
@@ -93,6 +93,7 @@ def get_args_parser():
                         help='start epoch')
     parser.add_argument('--eval', action='store_true')
     parser.add_argument('--num_workers', default=2, type=int)
+    parser.add_argument('--output_layer', default=-1, type=int)
 
     # distributed training parameters
     parser.add_argument('--world_size', default=1, type=int,
@@ -163,7 +164,7 @@ def plot_results(pil_img, prob, boxes, save_name):
 
 # model = torch.hub.load('facebookresearch/detr', 'detr_resnet50', pretrained=True)
 
-model, _, _ = build_model(args)
+model, _, _ = build_vis_model(args)
 checkpoint = torch.hub.load_state_dict_from_url(
     args.resume, map_location='cpu', check_hash=True)
 model.load_state_dict(checkpoint['model'])
