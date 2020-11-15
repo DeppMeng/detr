@@ -211,7 +211,7 @@ for img_id in id_list:
         probas = outputs['pred_logits'].softmax(-1)[0,:,:]
         if i == 0:
             probas_for_select = outputs['pred_logits'].softmax(-1)[0,:,:-1]
-            keep = probas.max(-1).values > 0.5
+            keep = probas_for_select.max(-1).values > 0.5
             print(keep)
 
 
