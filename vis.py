@@ -158,7 +158,7 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
         cl = p.argmax()
         text = f'{CLASSES[cl]}: {p[cl]:0.2f}'
         ax.text(xmin, ymin, text, fontsize=15,
-                bbox=dict(facecolor='yellow', alpha=0.5))
+                bbox=dict(facecolor='yellow', alpha=0.0), color=c)
     plt.axis('off')
     plt.savefig('vis/idx{}_layer{}.png'.format(save_name, layer_id), format='png')
 
