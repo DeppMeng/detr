@@ -160,7 +160,7 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
         ax.text(xmin, ymin, text, fontsize=15,
                 bbox=dict(facecolor='yellow', alpha=0.5))
     plt.axis('off')
-    plt.savefig('idx{}_layer{}.png'.format(save_name, layer_id), format='png')
+    plt.savefig('vis/idx{}_layer{}.png'.format(save_name, layer_id), format='png')
 
 # model = torch.hub.load('facebookresearch/detr', 'detr_resnet50', pretrained=True)
 
