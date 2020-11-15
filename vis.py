@@ -147,7 +147,7 @@ def rescale_bboxes(out_bbox, size):
     b = b * torch.tensor([img_w, img_h, img_w, img_h], dtype=torch.float32)
     return b
 
-def plot_results(pil_img, prob, boxes, save_name):
+def plot_results(pil_img, prob, boxes, save_name, layer_id):
     plt.figure(figsize=(16,10))
     plt.imshow(pil_img)
     ax = plt.gca()
@@ -160,15 +160,9 @@ def plot_results(pil_img, prob, boxes, save_name):
         ax.text(xmin, ymin, text, fontsize=15,
                 bbox=dict(facecolor='yellow', alpha=0.5))
     plt.axis('off')
-    plt.savefig('idx{}.png'.format(save_name), format='png')
+    plt.savefig('idx{}_layer{}.png'.format(save_name, layer_id), format='png')
 
 # model = torch.hub.load('facebookresearch/detr', 'detr_resnet50', pretrained=True)
-
-model, _, _ = build_vis_model(args)
-checkpoint = torch.hub.load_state_dict_from_url(
-    args.resume, map_location='cpu', check_hash=True)
-model.load_state_dict(checkpoint['model'])
-model.eval();
 
 img_id = '000000039769'
 img_id = '000000000285'
@@ -178,33 +172,24 @@ im = Image.open(requests.get(url, stream=True).raw)
 # mean-std normalize the input image (batch-size: 1)
 img = transform(im).unsqueeze(0)
 
-# propagate through the model
-outputs = model(img)
+for i in range(6):
+    args.output_layer = i
+    model, _, _ = build_vis_model(args)
+    checkpoint = torch.hub.load_state_dict_from_url(
+        args.resume, map_location='cpu', check_hash=True)
+    model.load_state_dict(checkpoint['model'])
+    model.eval();
+    
+    # propagate through the model
+    outputs = model(img)
 
-# print(outputs)
-
-
-# print(outputs['pred_logits'])
-print(outputs['pred_logits'].shape)
-
-
-# print(outputs['pred_logits'].softmax(-1))
-print(outputs['pred_logits'].softmax(-1).shape)
-
-
-
-# print(outputs['pred_logits'].softmax(-1)[0, :, :-1])
-print(outputs['pred_logits'].softmax(-1)[0, :, :-1].shape)
+    # keep only predictions with 0.7+ confidence
+    probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
+    keep = probas.max(-1).values > 0.5
+    print(keep)
 
 
+    # convert boxes from [0; 1] to image scales
+    bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
 
-# keep only predictions with 0.7+ confidence
-probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
-keep = probas.max(-1).values > 0.5
-print(keep)
-
-
-# convert boxes from [0; 1] to image scales
-bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
-
-plot_results(im, probas[keep], bboxes_scaled, img_id)
+    plot_results(im, probas[keep], bboxes_scaled, img_id, args.output_layer)
