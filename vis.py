@@ -152,13 +152,17 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
     plt.imshow(pil_img)
     ax = plt.gca()
     colors = COLORS * 100
+    count = 0
     for p, (xmin, ymin, xmax, ymax), c in zip(prob, boxes.tolist(), colors):
         ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
                                    fill=False, color=c, linewidth=3))
         cl = p.argmax()
         text = f'{CLASSES[cl]}: {p[cl]:0.2f}'
-        ax.text(xmin, ymin, text, fontsize=15,
+        ax.text(0, count * 10, text, fontsize=15,
                 bbox=dict(facecolor='yellow', alpha=0.0), color=c)
+        
+        count = count + 1
+
     plt.axis('off')
     plt.savefig('vis/idx{}_layer{}.png'.format(save_name, layer_id), format='png')
 
