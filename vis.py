@@ -16,6 +16,9 @@ import torchvision.transforms as T
 torch.set_grad_enabled(False);
 from models import build_vis_model
 
+cmap = plt.get_cmap("Dark2")
+
+
 def get_args_parser():
     parser = argparse.ArgumentParser('Set transformer detector', add_help=False)
     parser.add_argument('--lr', default=1e-4, type=float)
@@ -155,7 +158,7 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
     count = 0
     for p, (xmin, ymin, xmax, ymax), c in zip(prob, boxes.tolist(), colors):
         ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
-                                   fill=False, color=c, linewidth=3))
+                                   fill=False, color=cmap(count), linewidth=3))
         cl = p.argmax()
         text = f'{CLASSES[cl]}: {p[cl]:0.2f}'
         ax.text(0, count * 15 + 15, text, fontsize=15,
