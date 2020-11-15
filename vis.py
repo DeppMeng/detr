@@ -162,7 +162,7 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
         cl = p.argmax()
         text = f'{CLASSES[cl]}: {p[cl]:0.2f}'
         ax.text(0, count * 15 + 15, text, fontsize=15,
-                bbox=dict(facecolor='yellow', alpha=0.0), color=c)
+                bbox=dict(facecolor='yellow', alpha=0.0), color=cmap(count))
         
         count = count + 1
 
