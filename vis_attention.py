@@ -246,8 +246,8 @@ for img_id in id_list:
 
     conv_features = conv_features[0]
     enc_attn_weights = enc_attn_weights[0]
-    print(len(dec_attn_weights))
     dec_attn_weights = dec_attn_weights[0]
+    print(dec_attn_weights.shape)
     
     h, w = conv_features['0'].tensors.shape[-2:]
 
