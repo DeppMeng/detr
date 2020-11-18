@@ -178,7 +178,7 @@ id_list = [
     # '000000000632',
     # '000000000724',
     '000000000776',
-    '000000000785',
+    # '000000000785',
     # '000000000802',
     # '000000000872',
     # '000000000885',
@@ -237,41 +237,44 @@ for idxx, img_id in enumerate(id_list):
 
     probas_for_select = outputs['pred_logits'].softmax(-1)[0,:,:-1]
     keep = probas_for_select.max(-1).values > 0.5
-    keep = torch.zeros(100, dtype=torch.bool)
-    keep[idd_list[idxx]] = True
-    print(keep)
+
+    for count in range(20):
+        idd_list = [5 * count, 5 * count + 1, 5 * count + 2, 5 * count + 3, 5 * count + 4]
+
+        keep = torch.zeros(100, dtype=torch.bool)
+        keep[idd_list] = True
+        print(keep)
+
+        # convert boxes from [0; 1] to image scales
+        bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
+
+        # plot_results(im, probas[keep], bboxes_scaled, img_id, output_layer)
 
 
-    # convert boxes from [0; 1] to image scales
-    bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
+        for hook in hooks:
+            hook.remove()
 
-    plot_results(im, probas[keep], bboxes_scaled, img_id, output_layer)
+        conv_features = conv_features[0]
+        enc_attn_weights = enc_attn_weights[0]
+        dec_attn_weights = dec_attn_weights[0]
+        dec_self_atten_weights = dec_self_atten_weights[0]
+        print(dec_self_atten_weights)
+        # print(dec_attn_weights.shape)
+        
+        h, w = conv_features['0'].tensors.shape[-2:]
 
-
-    for hook in hooks:
-        hook.remove()
-
-    conv_features = conv_features[0]
-    enc_attn_weights = enc_attn_weights[0]
-    dec_attn_weights = dec_attn_weights[0]
-    dec_self_atten_weights = dec_self_atten_weights[0]
-    print(dec_self_atten_weights)
-    # print(dec_attn_weights.shape)
-    
-    h, w = conv_features['0'].tensors.shape[-2:]
-
-    fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
-    colors = COLORS * 100
-    for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
-        ax = ax_i[0]
-        ax.imshow(dec_attn_weights[0, idx].view(h, w))
-        ax.axis('off')
-        ax.set_title(f'query id: {idx.item()}')
-        ax = ax_i[1]
-        ax.imshow(im)
-        ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
-                                fill=False, color='blue', linewidth=3))
-        ax.axis('off')
-        ax.set_title(CLASSES[probas[idx].argmax()])
-    fig.tight_layout()
-    plt.savefig('vis_attn/idx{}_layer{}_only_pos.png'.format(img_id, 0), format='png')
+        fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
+        colors = COLORS * 100
+        for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
+            ax = ax_i[0]
+            ax.imshow(dec_attn_weights[0, idx].view(h, w))
+            ax.axis('off')
+            ax.set_title(f'query id: {idx.item()}')
+            ax = ax_i[1]
+            ax.imshow(im)
+            ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
+                                    fill=False, color='blue', linewidth=3))
+            ax.axis('off')
+            ax.set_title(CLASSES[probas[idx].argmax()])
+        fig.tight_layout()
+        plt.savefig('vis_attn/idx{}_layer{}_only_pos_split{}.png'.format(img_id, 0, count), format='png')
