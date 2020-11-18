@@ -177,8 +177,8 @@ id_list = [
     # '000000000285',
     # '000000000632',
     # '000000000724',
-    '000000000776',
-    # '000000000785',
+    # '000000000776',
+    '000000000785',
     # '000000000802',
     # '000000000872',
     # '000000000885',
@@ -245,7 +245,7 @@ for idxx, img_id in enumerate(id_list):
     
     for hook in hooks:
         hook.remove()
-        
+
     for count in range(20):
         idd_list = [5 * count, 5 * count + 1, 5 * count + 2, 5 * count + 3, 5 * count + 4]
 
