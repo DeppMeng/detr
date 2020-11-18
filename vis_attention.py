@@ -201,18 +201,6 @@ model.load_state_dict(checkpoint['model'])
 model.eval();
 
 
-hooks = [
-    model.backbone[-2].register_forward_hook(
-        lambda self, input, output: conv_features.append(output)
-    ),
-    model.transformer.encoder.layers[-1].self_attn.register_forward_hook(
-        lambda self, input, output: enc_attn_weights.append(output[1])
-    ),
-    model.transformer.decoder.layers[-1].multihead_attn.register_forward_hook(
-        lambda self, input, output: dec_attn_weights.append(output[1])
-    ),
-]
-
 for img_id in id_list:
     # img_id = '000000000139'
     url = 'http://images.cocodataset.org/val2017/{}.jpg'.format(img_id)
@@ -221,6 +209,19 @@ for img_id in id_list:
     # mean-std normalize the input image (batch-size: 1)
     img = transform(im).unsqueeze(0)
 
+
+    conv_features, enc_attn_weights, dec_attn_weights = [], [], []
+    hooks = [
+        model.backbone[-2].register_forward_hook(
+            lambda self, input, output: conv_features.append(output)
+        ),
+        model.transformer.encoder.layers[-1].self_attn.register_forward_hook(
+            lambda self, input, output: enc_attn_weights.append(output[1])
+        ),
+        model.transformer.decoder.layers[-1].multihead_attn.register_forward_hook(
+            lambda self, input, output: dec_attn_weights.append(output[1])
+        ),
+    ]
 
     output_layer = 5
     # propagate through the model
@@ -239,8 +240,9 @@ for img_id in id_list:
 
     plot_results(im, probas[keep], bboxes_scaled, img_id, output_layer)
 
-    dec_attn_weights = []
-    conv_features, enc_attn_weights, dec_attn_weights = [], [], []
+
+    for hook in hooks:
+        hook.remove()
 
     conv_features = conv_features[0]
     enc_attn_weights = enc_attn_weights[0]
