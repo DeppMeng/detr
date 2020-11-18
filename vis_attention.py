@@ -238,6 +238,14 @@ for idxx, img_id in enumerate(id_list):
     probas_for_select = outputs['pred_logits'].softmax(-1)[0,:,:-1]
     keep = probas_for_select.max(-1).values > 0.5
 
+    conv_features = conv_features[0]
+    enc_attn_weights = enc_attn_weights[0]
+    dec_attn_weights = dec_attn_weights[0]
+    dec_self_atten_weights = dec_self_atten_weights[0]
+    
+    for hook in hooks:
+        hook.remove()
+        
     for count in range(20):
         idd_list = [5 * count, 5 * count + 1, 5 * count + 2, 5 * count + 3, 5 * count + 4]
 
@@ -251,13 +259,7 @@ for idxx, img_id in enumerate(id_list):
         # plot_results(im, probas[keep], bboxes_scaled, img_id, output_layer)
 
 
-        for hook in hooks:
-            hook.remove()
 
-        conv_features = conv_features[0]
-        enc_attn_weights = enc_attn_weights[0]
-        dec_attn_weights = dec_attn_weights[0]
-        dec_self_atten_weights = dec_self_atten_weights[0]
         print(dec_self_atten_weights)
         # print(dec_attn_weights.shape)
         
