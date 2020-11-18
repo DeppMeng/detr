@@ -270,4 +270,4 @@ for img_id in id_list:
         ax.axis('off')
         ax.set_title(CLASSES[probas[idx].argmax()])
     fig.tight_layout()
-    plt.savefig('vis_attn/idx{}_layer{}.png'.format(img_id, 5), format='png')
+    plt.savefig('vis_attn/idx{}_layer{}_only_appearance.png'.format(img_id, 0), format='png')
