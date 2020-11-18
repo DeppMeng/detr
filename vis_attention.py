@@ -173,10 +173,10 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
 
 # img_id = '000000039769'
 id_list = [
-    # '000000000139',
-    # '000000000285',
-    # '000000000632',
-    # '000000000724',
+    '000000000139',
+    '000000000285',
+    '000000000632',
+    '000000000724',
     '000000000776',
     # '000000000785',
     # '000000000802',
@@ -210,7 +210,7 @@ for img_id in id_list:
     img = transform(im).unsqueeze(0)
 
 
-    conv_features, enc_attn_weights, dec_attn_weights = [], [], []
+    conv_features, enc_attn_weights, dec_attn_weights, dec_self_atten_weights = [], [], [], []
     hooks = [
         model.backbone[-2].register_forward_hook(
             lambda self, input, output: conv_features.append(output)
@@ -218,8 +218,11 @@ for img_id in id_list:
         model.transformer.encoder.layers[-1].self_attn.register_forward_hook(
             lambda self, input, output: enc_attn_weights.append(output[1])
         ),
-        model.transformer.decoder.layers[-1].multihead_attn.register_forward_hook(
+        model.transformer.decoder.layers[0].multihead_attn.register_forward_hook(
             lambda self, input, output: dec_attn_weights.append(output[1])
+        ),
+        model.transformer.decoder.layers[0].self_attn.register_forward_hook(
+            lambda self, input, output: dec_self_atten_weights.append(output[1])
         ),
     ]
 
@@ -247,7 +250,9 @@ for img_id in id_list:
     conv_features = conv_features[0]
     enc_attn_weights = enc_attn_weights[0]
     dec_attn_weights = dec_attn_weights[0]
-    print(dec_attn_weights.shape)
+    dec_self_atten_weights = dec_self_atten_weights[0]
+    print(dec_self_atten_weights)
+    # print(dec_attn_weights.shape)
     
     h, w = conv_features['0'].tensors.shape[-2:]
 
