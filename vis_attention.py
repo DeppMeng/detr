@@ -179,18 +179,18 @@ id_list = [
     # '000000000724',
     '000000000776',
     '000000000785',
-    '000000000802',
-    '000000000872',
-    '000000000885',
-    '000000001000',
-    '000000001268',
-    '000000001296',
-    '000000001353',
-    '000000001425',
-    '000000001490',
-    '000000001503',
-    '000000001532',
-    '000000001584',
+    # '000000000802',
+    # '000000000872',
+    # '000000000885',
+    # '000000001000',
+    # '000000001268',
+    # '000000001296',
+    # '000000001353',
+    # '000000001425',
+    # '000000001490',
+    # '000000001503',
+    # '000000001532',
+    # '000000001584',
 ]
 
 
@@ -200,8 +200,10 @@ checkpoint = torch.hub.load_state_dict_from_url(
 model.load_state_dict(checkpoint['model'])
 model.eval();
 
+idd_list = [[43, 61, 98],
+            [71, 92]]
 
-for img_id in id_list:
+for idxx, img_id in enumerate(id_list):
     # img_id = '000000000139'
     url = 'http://images.cocodataset.org/val2017/{}.jpg'.format(img_id)
     im = Image.open(requests.get(url, stream=True).raw)
@@ -235,6 +237,8 @@ for img_id in id_list:
 
     probas_for_select = outputs['pred_logits'].softmax(-1)[0,:,:-1]
     keep = probas_for_select.max(-1).values > 0.5
+    keep = torch.zeros(100, dtype=torch.bool)
+    keep[idd_list[idxx]] = True
     print(keep)
 
 
