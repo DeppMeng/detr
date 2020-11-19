@@ -54,6 +54,8 @@ class DETR(nn.Module):
         self.sine_query_embed = sine_query_embed
         self.backbone = backbone
         self.aux_loss = aux_loss
+        self.num_queries = num_queries
+        self.hidden_dim = hidden_dim
 
     def forward(self, samples: NestedTensor):
         """ The forward expects a NestedTensor, which consists of:
@@ -74,9 +76,11 @@ class DETR(nn.Module):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
         if self.sine_query_embed == True and self.query_embed == None:
+            self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
             upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
             pos_embed_example = upsamp(pos[-1])
-            self.query_embed = pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0)
+            self.query_embed.weight = pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0)
+            self.query_embed.weight.requires_grad = False
 
         src, mask = features[-1].decompose()
         assert mask is not None
