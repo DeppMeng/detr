@@ -36,16 +36,22 @@ class DETR(nn.Module):
         hidden_dim = transformer.d_model
         self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
-        if sine_query_embed == True:
-            example_tensor = NestedTensor(tensors=torch.zeros((2, 2048, 24, 32)).cuda(), mask=torch.zeros((2, 24, 32), dtype=torch.bool).cuda())
-            pos_embed_example = backbone[1](example_tensor).to(example_tensor.tensors.dtype)[-1]
-            print(pos_embed_example.shape)
-            upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
-            pos_embed_example = upsamp(pos_embed_example)
-            self.query_embed = pos_embed_example.flatten(2).squeeze(0).permute(1, 0)
-        else:
+        # if sine_query_embed == True:
+        #     example_tensor = NestedTensor(tensors=torch.zeros((2, 2048, 24, 32)).cuda(), mask=torch.zeros((2, 24, 32), dtype=torch.bool).cuda())
+        #     pos_embed_example = backbone[1](example_tensor).to(example_tensor.tensors.dtype)[-1]
+        #     print(pos_embed_example.shape)
+        #     upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
+        #     pos_embed_example = upsamp(pos_embed_example)
+        #     self.query_embed = pos_embed_example.flatten(2).squeeze(0).permute(1, 0)
+        # else:
+        #     self.query_embed = nn.Embedding(num_queries, hidden_dim)
+
+        if sine_query_embed == False:
             self.query_embed = nn.Embedding(num_queries, hidden_dim)
+        else:
+            self.query_embed = None
         self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
+        self.sine_query_embed = sine_query_embed
         self.backbone = backbone
         self.aux_loss = aux_loss
 
@@ -67,6 +73,10 @@ class DETR(nn.Module):
         if isinstance(samples, (list, torch.Tensor)):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
+        if self.sine_query_embed == True and self.query_embed == None:
+            upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
+            pos_embed_example = upsamp(pos_embed_example)
+            self.query_embed = pos_embed_example.flatten(2).squeeze(0).permute(1, 0)
 
         src, mask = features[-1].decompose()
         assert mask is not None
