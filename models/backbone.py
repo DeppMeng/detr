@@ -104,6 +104,7 @@ class Joiner(nn.Sequential):
         for name, x in xs.items():
             out.append(x)
             print(x.tensors.shape)
+            print(x.mask.shape)
             # position encoding
             pos.append(self[1](x).to(x.tensors.dtype))
 
