@@ -39,8 +39,8 @@ class DETR(nn.Module):
         if sine_query_embed == True:
             example_tensor = NestedTensor(torch.zeros((2, 2048, 24, 32)).cuda(), torch.zeros((2, 24, 32), dtype=torch.bool).cuda())
             pos_embed_example = backbone[1](example_tensor).to(example_tensor.tensors.dtype)[-1]
-            upsamp = nn.Upsample(size=(10, 10))
-            pos_embed_example = upsamp(pos_embed_example, mode='bilinear')
+            upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
+            pos_embed_example = upsamp(pos_embed_example)
             self.query_embed = pos_embed_example.flatten(2).squeeze(0).permute(1, 0)
         else:
             self.query_embed = nn.Embedding(num_queries, hidden_dim)
