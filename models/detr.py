@@ -37,8 +37,8 @@ class DETR(nn.Module):
         self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
         if sine_query_embed == True:
-            example_tensor = torch.zeros((1, 64, 24, 32)).cuda()
-            pos_embed_example = backbone[1](example_tensor).to(example_tensor.dtype)[-1]
+            example_tensor = NestedTensor(torch.zeros((1, 64, 24, 32)).cuda(), torch.zeros((1, 64, 24, 32)).cuda())
+            pos_embed_example = backbone[1](example_tensor).to(example_tensor.tensors.dtype)[-1]
             upsamp = nn.Upsample(size=(10, 10))
             pos_embed_example = upsamp(pos_embed_example, mode='bilinear')
             self.query_embed = pos_embed_example.flatten(2).squeeze(0).permute(1, 0)
