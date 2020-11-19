@@ -196,7 +196,8 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
 # ]
 
 id_list = [
-    1
+    2,
+    3
 ]
 
 
