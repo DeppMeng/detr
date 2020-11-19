@@ -37,8 +37,11 @@ class DETR(nn.Module):
         self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
         if sine_query_embed == True:
-            pass
-            # self.query_embed =
+            example_tensor = torch.zeros((1, 64, 24, 32)).cuda()
+            pos_embed_example = backbone[1](example_tensor).to(example_tensor.dtype)[-1]
+            upsamp = nn.Upsample(size=(10, 10))
+            pos_embed_example = upsamp(pos_embed_example, mode='bilinear')
+            self.query_embed = pos_embed_example.flatten(2).squeeze(0).permute(1, 0)
         else:
             self.query_embed = nn.Embedding(num_queries, hidden_dim)
         self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
@@ -331,6 +334,7 @@ def build(args):
         num_classes=num_classes,
         num_queries=args.num_queries,
         aux_loss=args.aux_loss,
+        sine_query_embed=args.sine_query_embed
     )
     if args.masks:
         model = DETRsegm(model, freeze_detr=(args.frozen_weights is not None))
