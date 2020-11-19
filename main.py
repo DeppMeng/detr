@@ -106,7 +106,7 @@ def get_args_parser():
 
 def main(args):
     utils.init_distributed_mode(args)
-    logger = setup_logger(output='output/{}/'.format(args.output_dir), distributed_rank=dist.get_rank(), name="DETR", phase="train" if not args.eval else "eval")
+    logger = setup_logger(output=args.output_dir, distributed_rank=dist.get_rank(), name="DETR", phase="train" if not args.eval else "eval")
     logger.info(args)
     logger.info("git:\n  {}\n".format(utils.get_sha()))
 
