@@ -74,6 +74,7 @@ class DETR(nn.Module):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
         if self.sine_query_embed == True and self.query_embed == None:
+            print(pos.shape)
             upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
             pos_embed_example = upsamp(pos)
             self.query_embed = pos_embed_example.flatten(2).squeeze(0).permute(1, 0)
