@@ -196,6 +196,7 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
 # ]
 
 id_list = [
+    1,
     2,
     3
 ]
@@ -286,4 +287,4 @@ for idxx, img_id in enumerate(id_list):
             ax.axis('off')
             ax.set_title(CLASSES[probas[idx].argmax()])
         fig.tight_layout()
-        plt.savefig('vis_attn/local_idx{}_layer{}_only_pos_split{}.png'.format(img_id, 0, count), format='png')
+        plt.savefig('vis_attn/local_idx{}_layer{}_split{}.png'.format(img_id, 0, count), format='png')
