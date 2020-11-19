@@ -76,9 +76,9 @@ class DETR(nn.Module):
         if self.sine_query_embed == True and self.query_embed == None:
             upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
             pos_embed_example = upsamp(pos[-1])
-            print(pos_embed_example)
-            print(pos_embed_example.flatten(2))
-            print(pos_embed_example.flatten(2).squeeze(0))
+            print(pos_embed_example.shape)
+            print(pos_embed_example.flatten(2).shape)
+            print(pos_embed_example.flatten(2).squeeze(0).shape)
             self.query_embed = pos_embed_example.flatten(2).squeeze(0).permute(1, 0)
 
         src, mask = features[-1].decompose()
