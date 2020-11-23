@@ -8,6 +8,6 @@ MKL_THREADING_LAYER=GNU python -m torch.distributed.launch \
     main.py \
     --epochs 150 \
     --lr_drop 100 \
-    --sine_query_embed_v2 \
+    --sine_query_embedv2 \
     --coco_path ../data/coco \
     --output_dir output/$script_name
