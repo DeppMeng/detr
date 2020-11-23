@@ -104,6 +104,7 @@ def get_args_parser():
 
     # custom object query parameters
     parser.add_argument('--sine_query_embed', action='store_true')
+    parser.add_argument('--sine_query_embedv2', action='store_true')
     return parser
 
 

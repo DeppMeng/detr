@@ -20,7 +20,7 @@ from .transformer import build_transformer
 
 class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
-    def __init__(self, backbone, transformer, num_classes, num_queries, aux_loss=False, sine_query_embed=False):
+    def __init__(self, backbone, transformer, num_classes, num_queries, aux_loss=False, sine_query_embed=False, sine_query_embed_v2=False):
         """ Initializes the model.
         Parameters:
             backbone: torch module of the backbone to be used. See backbone.py
@@ -46,7 +46,7 @@ class DETR(nn.Module):
         # else:
         #     self.query_embed = nn.Embedding(num_queries, hidden_dim)
 
-        if sine_query_embed == False:
+        if sine_query_embed == False and sine_query_embed_v2 == False:
             self.query_embed = nn.Embedding(num_queries, hidden_dim)
         else:
             self.query_embed = None
@@ -76,6 +76,13 @@ class DETR(nn.Module):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
         if self.sine_query_embed == True and self.query_embed == None:
+            self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
+            upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
+            pos_embed_example = upsamp(pos[-1])
+            self.query_embed.weight = torch.nn.Parameter(pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0))
+            self.query_embed.weight.requires_grad = False
+
+        if self.sine_query_embed_v2 == True:
             self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
             upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
             pos_embed_example = upsamp(pos[-1])
@@ -349,7 +356,8 @@ def build(args):
         num_classes=num_classes,
         num_queries=args.num_queries,
         aux_loss=args.aux_loss,
-        sine_query_embed=args.sine_query_embed
+        sine_query_embed=args.sine_query_embed,
+        sine_query_embed_v2=args.sine_query_embedv2
     )
     if args.masks:
         model = DETRsegm(model, freeze_detr=(args.frozen_weights is not None))
