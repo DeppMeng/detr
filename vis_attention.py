@@ -285,13 +285,13 @@ for idxx, img_id in enumerate(id_list):
         fig.tight_layout()
         plt.savefig('vis_attn_v3/idx{}_layer{}_objectquerysine_only_pos_split{}.png'.format(img_id, 0, count), format='png')
 
-        avg_dec_attn_weights = torch.mean(dec_attn_weights[0, :])
+        avg_dec_attn_weights = torch.mean(dec_attn_weights, dim=1, keepdim=True)
         print(avg_dec_attn_weights.shape)
         fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
         colors = COLORS * 100
         for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
             ax = ax_i[0]
-            ax.imshow(avg_dec_attn_weights.view(h, w))
+            ax.imshow(avg_dec_attn_weights[0, 0].view(h, w))
             ax.axis('off')
             ax.set_title(f'query id: all')
             ax = ax_i[1]
