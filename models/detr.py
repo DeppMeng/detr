@@ -52,6 +52,7 @@ class DETR(nn.Module):
             self.query_embed = None
         self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
         self.sine_query_embed = sine_query_embed
+        self.sine_query_embed_v2 = sine_query_embed_v2
         self.backbone = backbone
         self.aux_loss = aux_loss
         self.num_queries = num_queries
