@@ -283,3 +283,23 @@ for idxx, img_id in enumerate(id_list):
             ax.set_title(CLASSES[probas[idx].argmax()])
         fig.tight_layout()
         plt.savefig('vis_attn_v3_sineobjquery/idx{}_layer{}_only_pos_split{}.png'.format(img_id, 0, count), format='png')
+
+        if count == 0:
+            avg_dec_attn_weights = torch.sum(dec_attn_weights, dim=1, keepdim=True)
+            print(avg_dec_attn_weights.shape)
+            fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
+            colors = COLORS * 100
+            for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
+                ax = ax_i[0]
+                ax.imshow(avg_dec_attn_weights[0, 0].view(h, w))
+                ax.axis('off')
+                ax.set_title(f'query id: all')
+                ax = ax_i[1]
+                ax.imshow(im)
+                ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
+                                        fill=False, color='blue', linewidth=3))
+                ax.axis('off')
+                ax.set_title(CLASSES[probas[idx].argmax()])
+            fig.tight_layout()
+
+            plt.savefig('vis_attn_v3_sineobjquery/idx{}_layer{}_objectquerysine_only_pos_avg.png'.format(img_id, 0), format='png')
