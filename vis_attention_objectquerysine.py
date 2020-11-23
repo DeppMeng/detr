@@ -282,4 +282,4 @@ for idxx, img_id in enumerate(id_list):
             ax.axis('off')
             ax.set_title(CLASSES[probas[idx].argmax()])
         fig.tight_layout()
-        plt.savefig('vis_attn_v2/idx{}_layer{}_only_pos_split{}.png'.format(img_id, 0, count), format='png')
+        plt.savefig('vis_attn_v3_sineobjquery/idx{}_layer{}_only_pos_split{}.png'.format(img_id, 0, count), format='png')
