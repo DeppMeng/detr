@@ -102,6 +102,8 @@ def get_args_parser():
     parser.add_argument('--world_size', default=1, type=int,
                         help='number of distributed processes')
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
+    # custom object query parameters
+    parser.add_argument('--sine_query_embed', action='store_true')
     return parser
 
 
@@ -195,8 +197,9 @@ id_list = [
 
 
 model, _, _ = build_vis_model(args)
-checkpoint = torch.hub.load_state_dict_from_url(
-    args.resume, map_location='cpu', check_hash=True)
+# checkpoint = torch.hub.load_state_dict_from_url(
+#     args.resume, map_location='cpu', check_hash=True)
+checkpoint = torch.load(args.resume, map_location='cpu')
 model.load_state_dict(checkpoint['model'])
 model.eval();
 
@@ -279,4 +282,4 @@ for idxx, img_id in enumerate(id_list):
             ax.axis('off')
             ax.set_title(CLASSES[probas[idx].argmax()])
         fig.tight_layout()
-        plt.savefig('vis_attn_v2/idx{}_layer{}_objectquerysine_only_pos_split{}.png'.format(img_id, 0, count), format='png')
+        plt.savefig('vis_attn_v2/idx{}_layer{}_only_pos_split{}.png'.format(img_id, 0, count), format='png')

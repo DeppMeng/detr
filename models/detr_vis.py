@@ -20,7 +20,7 @@ from .transformer import build_transformer
 
 class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
-    def __init__(self, backbone, transformer, num_classes, num_queries, aux_loss=False, output_layer=-1):
+    def __init__(self, backbone, transformer, num_classes, num_queries, aux_loss=False, sine_query_embed=False, output_layer=-1):
         """ Initializes the model.
         Parameters:
             backbone: torch module of the backbone to be used. See backbone.py
@@ -36,10 +36,16 @@ class DETR(nn.Module):
         hidden_dim = transformer.d_model
         self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
-        self.query_embed = nn.Embedding(num_queries, hidden_dim)
+        if sine_query_embed == False:
+            self.query_embed = nn.Embedding(num_queries, hidden_dim)
+        else:
+            self.query_embed = None
         self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
+        self.sine_query_embed = sine_query_embed
         self.backbone = backbone
         self.aux_loss = aux_loss
+        self.num_queries = num_queries
+        self.hidden_dim = hidden_dim
         self.output_layer = output_layer
 
     def forward(self, samples: NestedTensor, output_layer=None):
@@ -60,6 +66,12 @@ class DETR(nn.Module):
         if isinstance(samples, (list, torch.Tensor)):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
+        if self.sine_query_embed == True and self.query_embed == None:
+            self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
+            upsamp = nn.Upsample(size=(10, 10), mode='bilinear')
+            pos_embed_example = upsamp(pos[-1])
+            self.query_embed.weight = torch.nn.Parameter(pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0))
+            self.query_embed.weight.requires_grad = False
 
         src, mask = features[-1].decompose()
         assert mask is not None
@@ -330,6 +342,7 @@ def build_vis(args):
         num_classes=num_classes,
         num_queries=args.num_queries,
         aux_loss=args.aux_loss,
+        sine_query_embed=args.sine_query_embed,
         output_layer=args.output_layer
     )
     if args.masks:
