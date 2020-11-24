@@ -24,5 +24,6 @@ MKL_THREADING_LAYER=GNU python -m torch.distributed.launch \
     --epochs 50 \
     --lr_drop 40 \
     --sine_query_embedv2 \
+    --sine_query_embed_mode nearest \
     --coco_path ../data/coco \
     --output_dir output/$script_name
