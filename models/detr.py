@@ -82,7 +82,9 @@ class DETR(nn.Module):
         if self.sine_query_embed == True and self.query_embed == None:
             self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
             upsamp = nn.Upsample(size=(10, 10), mode=self.sine_query_embed_mode)
+            print(pos[-1].shape)
             pos_embed_example = upsamp(pos[-1])
+            print(pos_embed_example.shape)
             self.query_embed.weight = torch.nn.Parameter(pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0))
             self.query_embed.weight.requires_grad = False
         if self.sine_query_embed_v3 == True and self.query_embed == None:
