@@ -73,6 +73,10 @@ class DETR(nn.Module):
         if isinstance(samples, (list, torch.Tensor)):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
+        print(features[0].tensors)
+        print(features[0].tensors.shape)
+        print(features[0].mask)
+        print(features[0].mask.shape)
         if self.sine_query_embed == True and self.query_embed == None:
             self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
             upsamp = nn.Upsample(size=(10, 10), mode=self.sine_query_embed_mode)
