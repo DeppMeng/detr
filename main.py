@@ -115,7 +115,7 @@ def main(args):
     utils.init_distributed_mode(args)
     logger = setup_logger(output=args.output_dir, distributed_rank=dist.get_rank(), name="DETR", phase="train" if not args.eval else "eval")
     logger.info(args)
-    logger.info("git:\n  {}\n".format(utils.get_sha()))
+    # logger.info("git:\n  {}\n".format(utils.get_sha()))
 
     if args.frozen_weights is not None:
         assert args.masks, "Frozen training is meant for segmentation only"
