@@ -106,8 +106,12 @@ def get_args_parser():
     parser.add_argument('--eval_freq', default=10, type=int)
 
     # custom object query parameters
+    # 10x10 fixed sine position embedding interpolated from 20x30 map
     parser.add_argument('--sine_query_embed', action='store_true')
+    # 10x10 fixed sine position embedding interpolated from input image size
     parser.add_argument('--sine_query_embedv2', action='store_true')
+    # 10x10 fixed sine position embedding interpolated from largest possible image size (41x41)
+    parser.add_argument('--sine_query_embedv3', action='store_true')
     return parser
 
 
