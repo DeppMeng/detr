@@ -90,7 +90,7 @@ class DETR(nn.Module):
         if self.sine_query_embed_v3 == True and self.query_embed == None:
             self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
             upsamp = nn.Upsample(size=(10, 10), mode=self.sine_query_embed_mode)
-            example_tensor = NestedTensor(tensors=torch.zeros((2, 2048, 41, 41)).cuda(), mask=torch.ones((2, 41, 41), dtype=torch.bool).cuda())
+            example_tensor = NestedTensor(tensors=torch.zeros((4, 2048, 41, 41)).cuda(), mask=torch.ones((4, 41, 41), dtype=torch.bool).cuda())
             pos_temp = self.backbone[1](example_tensor).to(example_tensor.tensors.dtype)[-1]
             print(pos[-1].shape)
             print(pos_temp.shape)
