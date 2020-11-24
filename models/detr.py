@@ -73,6 +73,7 @@ class DETR(nn.Module):
         if isinstance(samples, (list, torch.Tensor)):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
+        print(samples.tensors.shape)
         print(features[0].tensors)
         print(features[0].tensors.shape)
         print(features[0].mask)
