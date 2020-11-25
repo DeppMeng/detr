@@ -15,7 +15,7 @@ pip install termcolor --user
 pip list
 MKL_THREADING_LAYER=GNU python -m torch.distributed.launch \
     --nproc_per_node=8 \
-    --nnodes=4 \
+    --nnodes=8 \
     --node_rank=$NODE_RANK \
     --master_addr=$MASTER_IP \
     --master_port=$MASTER_PORT \
