@@ -270,20 +270,13 @@ for idxx, img_id in enumerate(id_list):
 
         fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
         colors = COLORS * 100
-        # for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
-        #     ax = ax_i[0]
-        #     argmax_attn = torch.floor(dec_attn_weights[0, idx].view(h, w) / torch.max(dec_attn_weights[0, idx].view(h, w)))
-        #     ax.imshow(argmax_attn)
-        #     ax.axis('off')
-        #     ax.set_title(f'query id: {idx.item()}')
-        #     ax = ax_i[1]
-        #     ax.imshow(im)
-        #     ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
-        #                             fill=False, color='blue', linewidth=3))
-        #     ax.axis('off')
-        #     ax.set_title(CLASSES[probas[idx].argmax()])
-        # fig.tight_layout()
-        # plt.savefig('vis_attn_v4_sineobjquery/idx{}_layer{}_only_pos_split{}.png'.format(img_id, 0, count), format='png')
+        
+        enc_pos = model.pos
+        print(enc_pos.shape)
+        obj_embed = model.query_embed
+        print(obj_embed.shape)
+        att_weights = torch.mul(obj_embed, enc_pos)
+        print(att_weights.shape)
 
         if count == 0:
             sum_argmax_attn = torch.zeros(h, w)
