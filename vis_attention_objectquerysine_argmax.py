@@ -199,7 +199,7 @@ id_list = [
 model, _, _ = build_vis_model(args)
 # checkpoint = torch.hub.load_state_dict_from_url(
 #     args.resume, map_location='cpu', check_hash=True)
-checkpoint = torch.load(args.resume, map_location='cpu')
+# checkpoint = torch.load(args.resume, map_location='cpu')
 model.load_state_dict(checkpoint['model'], strict=False)
 model.eval();
 
@@ -249,7 +249,7 @@ for idxx, img_id in enumerate(id_list):
     for hook in hooks:
         hook.remove()
 
-    for count in range(20):
+    for count in range(1):
         idd_list = [5 * count, 5 * count + 1, 5 * count + 2, 5 * count + 3, 5 * count + 4]
 
         keep = torch.zeros(100, dtype=torch.bool)
