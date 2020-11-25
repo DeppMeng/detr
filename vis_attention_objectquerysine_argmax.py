@@ -175,24 +175,24 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
 
 # img_id = '000000039769'
 id_list = [
-    # '000000000139',
-    # '000000000285',
-    # '000000000632',
-    # '000000000724',
-    # '000000000776',
+    '000000000139',
+    '000000000285',
+    '000000000632',
+    '000000000724',
+    '000000000776',
     '000000000785',
-    # '000000000802',
-    # '000000000872',
-    # '000000000885',
-    # '000000001000',
-    # '000000001268',
-    # '000000001296',
-    # '000000001353',
-    # '000000001425',
-    # '000000001490',
-    # '000000001503',
-    # '000000001532',
-    # '000000001584',
+    '000000000802',
+    '000000000872',
+    '000000000885',
+    '000000001000',
+    '000000001268',
+    '000000001296',
+    '000000001353',
+    '000000001425',
+    '000000001490',
+    '000000001503',
+    '000000001532',
+    '000000001584',
 ]
 
 
@@ -270,20 +270,20 @@ for idxx, img_id in enumerate(id_list):
 
         fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
         colors = COLORS * 100
-        for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
-            ax = ax_i[0]
-            argmax_attn = torch.floor(dec_attn_weights[0, idx].view(h, w) / torch.max(dec_attn_weights[0, idx].view(h, w)))
-            ax.imshow(argmax_attn)
-            ax.axis('off')
-            ax.set_title(f'query id: {idx.item()}')
-            ax = ax_i[1]
-            ax.imshow(im)
-            ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
-                                    fill=False, color='blue', linewidth=3))
-            ax.axis('off')
-            ax.set_title(CLASSES[probas[idx].argmax()])
-        fig.tight_layout()
-        plt.savefig('vis_attn_v4_sineobjquery/idx{}_layer{}_only_pos_split{}.png'.format(img_id, 0, count), format='png')
+        # for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
+        #     ax = ax_i[0]
+        #     argmax_attn = torch.floor(dec_attn_weights[0, idx].view(h, w) / torch.max(dec_attn_weights[0, idx].view(h, w)))
+        #     ax.imshow(argmax_attn)
+        #     ax.axis('off')
+        #     ax.set_title(f'query id: {idx.item()}')
+        #     ax = ax_i[1]
+        #     ax.imshow(im)
+        #     ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
+        #                             fill=False, color='blue', linewidth=3))
+        #     ax.axis('off')
+        #     ax.set_title(CLASSES[probas[idx].argmax()])
+        # fig.tight_layout()
+        # plt.savefig('vis_attn_v4_sineobjquery/idx{}_layer{}_only_pos_split{}.png'.format(img_id, 0, count), format='png')
 
         if count == 0:
             sum_argmax_attn = torch.zeros(h, w)
