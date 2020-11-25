@@ -271,7 +271,7 @@ for idxx, img_id in enumerate(id_list):
         fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
         colors = COLORS * 100
         
-        enc_pos = model.pos
+        enc_pos = model.pos.squeeze(2)
         print(enc_pos.shape)
         obj_embed = model.query_embed.weight
         print(obj_embed.shape)
