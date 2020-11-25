@@ -288,7 +288,7 @@ for idxx, img_id in enumerate(id_list):
         if count == 0:
             sum_argmax_attn = torch.zeros(h, w)
             for subcount in range(100):
-                sum_argmax_attn += torch.floor(dec_attn_weights[0, subcount].view(h, w) / torch.max(dec_attn_weights[0, idx].view(h, w)))
+                sum_argmax_attn += torch.floor(dec_attn_weights[0, subcount].view(h, w) / torch.max(dec_attn_weights[0, subcount].view(h, w)))
             avg_dec_attn_weights = torch.sum(dec_attn_weights, dim=1, keepdim=True)
             print(avg_dec_attn_weights.shape)
             fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
