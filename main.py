@@ -113,6 +113,8 @@ def get_args_parser():
     parser.add_argument('--sine_query_embedv2', action='store_true')
     # 10x10 fixed sine position embedding interpolated from largest possible image size (41x41)
     parser.add_argument('--sine_query_embedv3', action='store_true')
+    # 10x10 fixed sine position embedding directly generated from (10x10) map
+    parser.add_argument('--sine_query_embedv4', action='store_true')
 
     # 10x10 fixed sine position embedding interpolation mode
     parser.add_argument('--sine_query_embed_mode', default='bilinear', type=str)

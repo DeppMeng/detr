@@ -32,9 +32,14 @@ class DETR(nn.Module):
         """
         super().__init__()
         num_queries = args.num_queries
+        
+        # sine_query_embed and sine_query_embed_v2 is not good, deprecated.
+        """
         sine_query_embed = args.sine_query_embed
         sine_query_embed_v2 = args.sine_query_embedv2
+        """
         sine_query_embed_v3 = args.sine_query_embedv3
+        sine_query_embed_v4 = args.sine_query_embedv4
         self.num_queries = args.num_queries
         self.transformer = transformer
         hidden_dim = transformer.d_model
@@ -42,14 +47,13 @@ class DETR(nn.Module):
         self.sine_query_embed_mode = args.sine_query_embed_mode
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
 
-        if sine_query_embed == False and sine_query_embed_v2 == False and sine_query_embed_v3 == False:
+        if sine_query_embed_v3 == False and sine_query_embed_v4 == False:
             self.query_embed = nn.Embedding(num_queries, hidden_dim)
         else:
             self.query_embed = None
         self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
-        self.sine_query_embed = sine_query_embed
-        self.sine_query_embed_v2 = sine_query_embed_v2
         self.sine_query_embed_v3 = sine_query_embed_v3
+        self.sine_query_embed_v4 = sine_query_embed_v4
         self.backbone = backbone
         self.aux_loss = args.aux_loss
         self.num_queries = num_queries
@@ -73,12 +77,23 @@ class DETR(nn.Module):
         if isinstance(samples, (list, torch.Tensor)):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
+
+        # sine_query_embed and sine_query_embed_v2 is not good, deprecated.
+        """
         if self.sine_query_embed == True and self.query_embed == None:
             self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
             upsamp = nn.Upsample(size=(10, 10), mode=self.sine_query_embed_mode)
             pos_embed_example = upsamp(pos[-1])
             self.query_embed.weight = torch.nn.Parameter(pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0))
             self.query_embed.weight.requires_grad = False
+            
+        if self.sine_query_embed_v2 == True:
+            self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
+            upsamp = nn.Upsample(size=(10, 10), mode=self.sine_query_embed_mode)
+            pos_embed_example = upsamp(pos[-1])
+            self.query_embed.weight = torch.nn.Parameter(pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0))
+            self.query_embed.weight.requires_grad = False
+        """
 
         if self.sine_query_embed_v3 == True and self.query_embed == None:
             self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
@@ -88,11 +103,12 @@ class DETR(nn.Module):
             pos_embed_example = upsamp(pos_temp)
             self.query_embed.weight = torch.nn.Parameter(pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0))
             self.query_embed.weight.requires_grad = False
-            
-        if self.sine_query_embed_v2 == True:
+
+        if self.sine_query_embed_v4 == True and self.query_embed == None:
             self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
-            upsamp = nn.Upsample(size=(10, 10), mode=self.sine_query_embed_mode)
-            pos_embed_example = upsamp(pos[-1])
+            example_tensor = NestedTensor(tensors=torch.zeros((4, 2048, 10, 10)).cuda(), mask=torch.zeros((4, 10, 10), dtype=torch.bool).cuda())
+            pos_temp = self.backbone[1](example_tensor).to(example_tensor.tensors.dtype)
+            pos_embed_example = pos_temp
             self.query_embed.weight = torch.nn.Parameter(pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0))
             self.query_embed.weight.requires_grad = False
 
