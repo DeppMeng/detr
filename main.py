@@ -194,7 +194,8 @@ def main(args):
             ckpt = os.path.join(args.output_dir, 'checkpoint.pth')
             if os.path.isfile(ckpt):
                 checkpoint = torch.load(os.path.join(args.output_dir, 'checkpoint.pth'), map_location='cpu')
-                model_without_ddp.load_state_dict(checkpoint['model'])
+                msg = model_without_ddp.load_state_dict(checkpoint['model'], strict=False)
+                logger.info('Missing keys: {}'.format(msg.missing_keys))
                 if not args.eval and 'optimizer' in checkpoint and 'lr_scheduler' in checkpoint and 'epoch' in checkpoint:
                     optimizer.load_state_dict(checkpoint['optimizer'])
                     lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
