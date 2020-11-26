@@ -21,6 +21,7 @@ MKL_THREADING_LAYER=GNU python -m torch.distributed.launch \
     --master_port=$MASTER_PORT \
     --use_env \
     main.py \
+    --resume auto \
     --epochs 50 \
     --lr_drop 40 \
     --sine_query_embed \

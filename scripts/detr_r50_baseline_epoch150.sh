@@ -6,6 +6,7 @@ MKL_THREADING_LAYER=GNU python -m torch.distributed.launch \
     --nproc_per_node=8 \
     --use_env \
     main.py \
+    --resume auto \
     --epochs 150 \
     --lr_drop 100 \
     --coco_path ../data/coco \

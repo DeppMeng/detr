@@ -4,6 +4,7 @@ import datetime
 import json
 import random
 import time
+import os
 from pathlib import Path
 
 import numpy as np
@@ -187,11 +188,14 @@ def main(args):
 
     output_dir = Path(args.output_dir)
     if args.resume:
-        if args.resume.startswith('https'):
-            checkpoint = torch.hub.load_state_dict_from_url(
-                args.resume, map_location='cpu', check_hash=True)
+        if args.resume == 'auto':
+            checkpoint = torch.load(os.path.join(args.output_dir, 'checkpoint.pth'), map_location='cpu')
         else:
-            checkpoint = torch.load(args.resume, map_location='cpu')
+            if args.resume.startswith('https'):
+                checkpoint = torch.hub.load_state_dict_from_url(
+                    args.resume, map_location='cpu', check_hash=True)
+            else:
+                checkpoint = torch.load(args.resume, map_location='cpu')
         model_without_ddp.load_state_dict(checkpoint['model'])
         if not args.eval and 'optimizer' in checkpoint and 'lr_scheduler' in checkpoint and 'epoch' in checkpoint:
             optimizer.load_state_dict(checkpoint['optimizer'])
