@@ -141,6 +141,7 @@ def main(args):
     random.seed(seed)
 
     model, criterion, postprocessors = build_model(args)
+    logger.info(model)
     model.to(device)
 
     model_without_ddp = model
