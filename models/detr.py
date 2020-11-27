@@ -52,12 +52,18 @@ class DETR(nn.Module):
         else:
             self.query_embed = None
         self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
-        self.sine_query_embed_v3 = sine_query_embed_v3
-        self.sine_query_embed_v4 = sine_query_embed_v4
         self.backbone = backbone
         self.aux_loss = args.aux_loss
         self.num_queries = num_queries
         self.hidden_dim = hidden_dim
+        
+        self.sine_query_embed_v3 = sine_query_embed_v3
+        self.sine_query_embed_v4 = sine_query_embed_v4
+        self.objquery_trans = args.objquery_trans
+        
+        if self.objquery_trans:
+            self.obj_trans = nn.Linear(100, 100, bias=False)
+            self.obj_trans.weight.data.copy_(torch.eye(100))
 
     def forward(self, samples: NestedTensor):
         """ The forward expects a NestedTensor, which consists of:
@@ -114,7 +120,7 @@ class DETR(nn.Module):
 
         src, mask = features[-1].decompose()
         assert mask is not None
-        hs = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])[0]
+        hs = self.transformer(self.input_proj(src), mask, self.obj_trans(self.query_embed.weight.T).T if self.objquery_trans else self.query_embed.weight, pos[-1])[0]
 
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()

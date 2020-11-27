@@ -118,6 +118,8 @@ def get_args_parser():
 
     # 10x10 fixed sine position embedding interpolation mode
     parser.add_argument('--sine_query_embed_mode', default='bilinear', type=str)
+
+    parser.add_argument('--objquery_trans', action='store_true')
     return parser
 
 
