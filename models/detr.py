@@ -117,6 +117,9 @@ class DETR(nn.Module):
             pos_embed_example = pos_temp
             self.query_embed.weight = torch.nn.Parameter(pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0))
             self.query_embed.weight.requires_grad = False
+        
+        print(self.query_embed.weight.T[0])
+        print(self.obj_trans(self.query_embed.weight.T).T[0])
 
         src, mask = features[-1].decompose()
         assert mask is not None
