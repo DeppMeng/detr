@@ -48,6 +48,13 @@ class DETR(nn.Module):
         self.hidden_dim = hidden_dim
         self.output_layer = output_layer
 
+        
+        if 1:
+            self.obj_trans = nn.Linear(100, 100, bias=False)
+            self.obj_trans.weight.data.copy_(torch.eye(100))
+
+
+
     def forward(self, samples: NestedTensor, output_layer=None):
         """ The forward expects a NestedTensor, which consists of:
                - samples.tensor: batched images, of shape [batch_size x 3 x H x W]
