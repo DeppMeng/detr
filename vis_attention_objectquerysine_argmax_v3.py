@@ -206,7 +206,7 @@ model.eval();
 idd_list = [[43, 61, 98],
             [71, 92]]
 
-trans_matrix = model.object_trans.weight
+trans_matrix = model.obj_trans.weight
 
 for idxx, img_id in enumerate(id_list):
     # img_id = '000000000139'
