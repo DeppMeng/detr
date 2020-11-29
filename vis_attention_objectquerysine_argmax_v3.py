@@ -291,7 +291,7 @@ for idxx, img_id in enumerate(id_list):
         colors = COLORS * 100
         for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
             ax = ax_i[0]
-            ax.imshow(sum_argmax_attn[idx].view(h, w))
+            ax.imshow(sum_argmax_attn[idx].view(10, 10))
             ax.axis('off')
             ax.set_title(f'query id: all')
             # ax = ax_i[1]
