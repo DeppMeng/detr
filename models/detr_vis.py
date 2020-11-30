@@ -50,8 +50,8 @@ class DETR(nn.Module):
 
         
         if 1:
-            self.obj_trans = nn.Linear(100, 100, bias=False)
-            self.obj_trans.weight.data.copy_(torch.eye(100))
+            self.obj_trans = nn.Linear(256, 256, bias=False)
+            self.obj_trans.weight.data.copy_(torch.eye(256))
 
 
 
