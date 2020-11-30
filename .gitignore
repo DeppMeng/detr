@@ -18,3 +18,5 @@ not_tracked_dir/
 output/
 imgs/
 figs/
+logs/
+plot*.py
