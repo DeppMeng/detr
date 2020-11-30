@@ -49,7 +49,7 @@ class DETR(nn.Module):
         self.output_layer = output_layer
 
         
-        if 1:
+        if 0:
             self.obj_trans = nn.Linear(100, 100, bias=False)
             self.obj_trans.weight.data.copy_(torch.eye(100))
 
