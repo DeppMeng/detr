@@ -60,10 +60,15 @@ class DETR(nn.Module):
         self.sine_query_embed_v3 = sine_query_embed_v3
         self.sine_query_embed_v4 = sine_query_embed_v4
         self.objquery_trans = args.objquery_trans
+        self.objquery_transv2 = args.objquery_transv2
         
         if self.objquery_trans:
             self.obj_trans = nn.Linear(100, 100, bias=False)
             self.obj_trans.weight.data.copy_(torch.eye(100))
+        
+        if self.objquery_transv2:
+            self.obj_trans = nn.Linear(256, 256, bias=False)
+            self.obj_trans.weight.data.copy_(torch.eye(256))
 
     def forward(self, samples: NestedTensor):
         """ The forward expects a NestedTensor, which consists of:
@@ -120,7 +125,15 @@ class DETR(nn.Module):
 
         src, mask = features[-1].decompose()
         assert mask is not None
-        hs = self.transformer(self.input_proj(src), mask, self.obj_trans(self.query_embed.weight.T).T if self.objquery_trans else self.query_embed.weight, pos[-1])[0]
+
+        if self.objquery_trans:
+            obj_query_input = self.obj_trans(self.query_embed.weight.T).T
+        elif self.objquery_transv2:
+            obj_query_input = self.obj_trans(self.query_embed.weight)
+        else:
+            obj_query_input = self.query_embed.weight
+        
+        hs = self.transformer(self.input_proj(src), mask, obj_query_input, pos[-1])[0]
 
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()

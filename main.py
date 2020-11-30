@@ -120,6 +120,7 @@ def get_args_parser():
     parser.add_argument('--sine_query_embed_mode', default='bilinear', type=str)
 
     parser.add_argument('--objquery_trans', action='store_true')
+    parser.add_argument('--objquery_transv2', action='store_true')
     return parser
 
 
