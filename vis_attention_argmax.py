@@ -306,4 +306,4 @@ for idxx, img_id in enumerate(id_list):
                 ax.set_title(CLASSES[probas[idx].argmax()])
             fig.tight_layout()
 
-            plt.savefig('vis_attn_v4/idx{}_layer{}_objectquerysine_only_pos_avg.png'.format(img_id, 0), format='png')
+            plt.savefig('vis_attn_v4_sinev4_argmax/idx{}_layer{}_objectquerysine_only_pos_avg.png'.format(img_id, 0), format='png')
