@@ -17,7 +17,8 @@ pattern_val_ap = re.compile("\| pose_sma\.\.\. \| ([0-9]*\.?[0-9]*) \|")
 pattern_train_loss = re.compile("Data [0-9]*\.?[0-9]*s? \([0-9]*\.?[0-9]*s?\)\sLoss [0-9]*\.?[0-9]* \(([0-9]*\.?[0-9]*)\)")
 
 
-pattern_cls_train_inst_acc_256 = re.compile("\[1847\/1848\]  eta: [0-9]:[0-9][0-9]:[0-9][0-9]  lr: [0-9]\.[0-9]+  class_error: [0-9]+\.[0-9]+  loss: [0-9]*\.?[0-9]* \(([0-9]*\.?[0-9]*)\)")
+# pattern_cls_train_inst_acc_256 = re.compile("\[1847\/1848\]  eta: [0-9]:[0-9][0-9]:[0-9][0-9]  lr: [0-9]\.[0-9]+  class_error: [0-9]+\.[0-9]+  loss: [0-9]*\.?[0-9]* \(([0-9]*\.?[0-9]*)\)")
+pattern_cls_train_inst_acc_256 = re.compile("\[923\/924\]  eta: [0-9]:[0-9][0-9]:[0-9][0-9]  lr: [0-9]\.[0-9]+  class_error: [0-9]+\.[0-9]+  loss: [0-9]*\.?[0-9]* \(([0-9]*\.?[0-9]*)\)")
 
 # [1847/1848]  eta: 0:00:00  lr: 0.000100  class_error: 95.54  loss: 22.7429 (25.9595)
 
@@ -98,13 +99,21 @@ if __name__ == '__main__':
     name_list = [
         '$learned$',
         '$SineV4$',
-        '$SineV4+Trans$',
+        '$SineV4+Trans100x100$',
+        '$SineV4+Trans256x256$',
         ]
 
+    # exp_list = [
+    #     'logs/log_learned_epoch150_4nodes_train.txt',
+    #     'logs/log_v4_epoch150_4nodes_train.txt',
+    #     'logs/log_v4_trans_epoch150_4nodes_train.txt',
+    # ]
+
     exp_list = [
-        'logs/log_learned_epoch150_4nodes_train.txt',
-        'logs/log_v4_epoch150_4nodes_train.txt',
-        'logs/log_v4_trans_epoch150_4nodes_train.txt',
+        'logs/log_learned_epoch50_8nodes_train.txt',
+        'logs/log_v4_epoch50_8nodes_train.txt',
+        'logs/log_v4_trans_epoch50_8nodes_train.txt',
+        'logs/log_v4_transv2_epoch50_8nodes_train.txt',
     ]
     
     if plot_type == 'inst-loss':
