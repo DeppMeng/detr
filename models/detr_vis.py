@@ -73,13 +73,14 @@ class DETR(nn.Module):
         if isinstance(samples, (list, torch.Tensor)):
             samples = nested_tensor_from_tensor_list(samples)
         features, pos = self.backbone(samples)
+        self.pos = pos[-1]
         if self.sine_query_embed == True:
             self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
             upsamp = nn.Upsample(size=(10, 10), mode='nearest')
             pos_embed_example = upsamp(pos[-1])
             self.query_embed.weight = torch.nn.Parameter(pos_embed_example.flatten(2)[0].squeeze(0).permute(1, 0))
             self.query_embed.weight.requires_grad = False
-            self.pos = pos[-1]
+            
             # self.query_embed = nn.Embedding(self.num_queries, self.hidden_dim)
             # upsamp = nn.Upsample(size=(10, 10), mode=self.sine_query_embed_mode)
             # example_tensor = NestedTensor(tensors=torch.zeros((4, 2048, 10, 10)).cuda(), mask=torch.ones((4, 10, 10), dtype=torch.bool).cuda())
