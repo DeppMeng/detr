@@ -176,23 +176,23 @@ def plot_results(pil_img, prob, boxes, save_name, layer_id):
 # img_id = '000000039769'
 id_list = [
     '000000000139',
-    '000000000285',
-    '000000000632',
-    '000000000724',
-    '000000000776',
-    '000000000785',
-    '000000000802',
-    '000000000872',
-    '000000000885',
-    '000000001000',
-    '000000001268',
-    '000000001296',
-    '000000001353',
-    '000000001425',
-    '000000001490',
-    '000000001503',
-    '000000001532',
-    '000000001584',
+    # '000000000285',
+    # '000000000632',
+    # '000000000724',
+    # '000000000776',
+    # '000000000785',
+    # '000000000802',
+    # '000000000872',
+    # '000000000885',
+    # '000000001000',
+    # '000000001268',
+    # '000000001296',
+    # '000000001353',
+    # '000000001425',
+    # '000000001490',
+    # '000000001503',
+    # '000000001532',
+    # '000000001584',
 ]
 
 
@@ -285,7 +285,7 @@ for idxx, img_id in enumerate(id_list):
         sum_argmax_attn = torch.zeros(100, 10, 10)
         for subcount in range(100):
             # sum_argmax_attn[subcount, :, :] = torch.floor(att_weights[0, subcount].view(h, w) / torch.max(att_weights[0, subcount].view(h, w)))
-            sum_argmax_attn[subcount, :, :] = trans_matrix[subcount, :].view(10, 10)
+            sum_argmax_attn[subcount, :, :] = trans_matrix[subcount, :].view(10, 10) + 0.2
         avg_dec_attn_weights = torch.sum(dec_attn_weights, dim=1, keepdim=True)
         print(avg_dec_attn_weights.shape)
         fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
@@ -303,4 +303,4 @@ for idxx, img_id in enumerate(id_list):
             ax.set_title(CLASSES[probas[idx].argmax()])
         fig.tight_layout()
 
-        plt.savefig('vis_attn_v4_sineobjquery_trans/idx{}_objectquerysineV4_split_{}.png'.format(img_id, count), format='png')
+        plt.savefig('vis_attn_v4_sineobjquery_trans_v2/idx{}_objectquerysineV4_split_{}.png'.format(img_id, count), format='png')
