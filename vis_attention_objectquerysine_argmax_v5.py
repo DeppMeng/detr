@@ -276,6 +276,7 @@ for idxx, img_id in enumerate(id_list):
         obj_embed = model.query_embed.weight
         print(obj_embed.shape)
         obj_embed = model.obj_trans(obj_embed)
+        print(obj_embed.shape)
         att_weights = torch.matmul(obj_embed, enc_pos).unsqueeze(0)
         print(att_weights.shape)
 
