@@ -16,7 +16,7 @@ from .matcher import build_matcher
 from .segmentation import (DETRsegm, PostProcessPanoptic, PostProcessSegm,
                            dice_loss, sigmoid_focal_loss)
 from .transformer import build_transformer
-
+from .transformer import build_transformer_w_clsnum_objmask
 
 class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
