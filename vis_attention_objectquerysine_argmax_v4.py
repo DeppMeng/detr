@@ -283,14 +283,15 @@ for idxx, img_id in enumerate(id_list):
         sum_argmax_attn = torch.zeros(100, h, w)
         for subcount in range(100):
             temp_attn = att_weights[0, subcount].view(h, w) - torch.min(att_weights[0, subcount].view(h, w))
-            sum_argmax_attn[subcount, :, :] = torch.floor(temp_attn / torch.max(temp_attn))
+            # sum_argmax_attn[subcount, :, :] = torch.floor(temp_attn / torch.max(temp_attn))
+            sum_argmax_attn[0, :, :] += torch.floor(temp_attn / torch.max(temp_attn))
         avg_dec_attn_weights = torch.sum(dec_attn_weights, dim=1, keepdim=True)
         print(avg_dec_attn_weights.shape)
         fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
         colors = COLORS * 100
         for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
             ax = ax_i[0]
-            ax.imshow(sum_argmax_attn[idx].view(h, w))
+            ax.imshow(sum_argmax_attn[0].view(h, w))
             ax.axis('off')
             ax.set_title(f'query id: all')
             ax = ax_i[1]
