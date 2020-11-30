@@ -197,8 +197,10 @@ id_list = [
 
 
 model, _, _ = build_vis_model(args)
-checkpoint = torch.hub.load_state_dict_from_url(
-    args.resume, map_location='cpu', check_hash=True)
+# checkpoint = torch.hub.load_state_dict_from_url(
+#     args.resume, map_location='cpu', check_hash=True)
+
+checkpoint = torch.load(args.resume, map_location='cpu')
 model.load_state_dict(checkpoint['model'])
 model.eval();
 
