@@ -97,7 +97,7 @@ class DETR(nn.Module):
 
         src, mask = features[-1].decompose()
         assert mask is not None
-        hs = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])[0]
+        hs = self.transformer(self.input_proj(src), mask, self.obj_trans(self.query_embed.weight.T).T, pos[-1])[0]
 
         if output_layer == None:
             output_layer = self.output_layer
