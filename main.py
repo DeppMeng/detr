@@ -121,6 +121,7 @@ def get_args_parser():
 
     parser.add_argument('--objquery_trans', action='store_true')
     parser.add_argument('--objquery_transv2', action='store_true')
+    parser.add_argument('--objquery_transv3', action='store_true')
     return parser
 
 

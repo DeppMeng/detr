@@ -61,6 +61,7 @@ class DETR(nn.Module):
         self.sine_query_embed_v4 = sine_query_embed_v4
         self.objquery_trans = args.objquery_trans
         self.objquery_transv2 = args.objquery_transv2
+        self.objquery_transv3 = args.objquery_transv3
         
         if self.objquery_trans:
             self.obj_trans = nn.Linear(100, 100, bias=False)
@@ -69,6 +70,12 @@ class DETR(nn.Module):
         if self.objquery_transv2:
             self.obj_trans = nn.Linear(256, 256, bias=False)
             self.obj_trans.weight.data.copy_(torch.eye(256))
+        
+        if self.objquery_transv3:
+            self.obj_trans1 = nn.Linear(100, 100, bias=False)
+            self.obj_trans1.weight.data.copy_(torch.eye(100))
+            self.obj_trans2 = nn.Linear(256, 256, bias=False)
+            self.obj_trans2.weight.data.copy_(torch.eye(256))
 
     def forward(self, samples: NestedTensor):
         """ The forward expects a NestedTensor, which consists of:
@@ -130,6 +137,9 @@ class DETR(nn.Module):
             obj_query_input = self.obj_trans(self.query_embed.weight.T).T
         elif self.objquery_transv2:
             obj_query_input = self.obj_trans(self.query_embed.weight)
+        elif self.objquery_transv3:
+            obj_query_input = self.obj_trans1(self.query_embed.weight.T).T
+            obj_query_input = self.obj_trans2(obj_query_input)
         else:
             obj_query_input = self.query_embed.weight
         
