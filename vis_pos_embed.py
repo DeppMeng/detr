@@ -250,33 +250,15 @@ for idxx, img_id in enumerate(id_list):
         hook.remove()
 
     for count in range(25):
-        idd_list = [5 * count, 5 * count + 1, 5 * count + 2, 5 * count + 3, 5 * count + 4]
-
-        keep = torch.zeros(100, dtype=torch.bool)
-        keep[idd_list] = True
-        print(keep)
-
-        # convert boxes from [0; 1] to image scales
-        bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
-
-        # plot_results(im, probas[keep], bboxes_scaled, img_id, output_layer)
-
-
-
-        print(dec_self_atten_weights)
-        # print(dec_attn_weights.shape)
         
         h, w = conv_features['0'].tensors.shape[-2:]
-
-        fig, axs = plt.subplots(ncols=len(bboxes_scaled), nrows=2, figsize=(22, 7))
-        colors = COLORS * 100
         
         enc_pos = model.pos[0].view(256, h * w)
         print(enc_pos.shape)
 
         fig, axs = plt.subplots(ncols=5, nrows=2, figsize=(22, 7))
         colors = COLORS * 100
-        for idx, ax_i, (xmin, ymin, xmax, ymax) in zip(keep.nonzero(), axs.T, bboxes_scaled):
+        for idx, ax_i in enumerate(axs.T):
             ax = ax_i[0]
             ax.imshow(enc_pos[count * 10 + 2 * idx].view(h, w))
             ax.axis('off')
