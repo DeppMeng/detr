@@ -27,7 +27,9 @@ MKL_THREADING_LAYER=GNU python -m torch.distributed.launch \
     --sine_query_embedv4 \
     --dec_pos_concat1x1 \
     --dec_pos_concat1x1_mode 2 \
+    --dec_pos_concat1x1_bias \
     --enc_pos_concat1x1 \
     --enc_pos_concat1x1_mode 1 \
+    --enc_pos_concat1x1_bias \
     --coco_path ../data/coco \
     --output_dir output/$script_name
