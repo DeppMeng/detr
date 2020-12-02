@@ -143,6 +143,8 @@ class TransformerEncoderLayer(nn.Module):
 
         self.activation = _get_activation_fn(activation)
         self.normalize_before = normalize_before
+        self.enc_pos_concat1x1 = enc_pos_concat1x1
+        self.enc_pos_concat1x1_mode = enc_pos_concat1x1_mode
         
         if enc_pos_concat1x1 == True and enc_pos_concat1x1_mode == 0:
             self.self_attn_pos_trans = nn.Linear(512, 256, bias=False)
