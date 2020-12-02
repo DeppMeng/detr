@@ -63,6 +63,7 @@ class Transformer(nn.Module):
         # here the memory has the shape 256 x HW??
         memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
         obj_num = self.objnum_embed(self.gap(memory.permute(1, 2, 0)).squeeze(2))
+        print(obj_num.shape)
 
         hs = self.decoder(tgt, memory, memory_key_padding_mask=mask,
                           pos=pos_embed, query_pos=query_embed)
