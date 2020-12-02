@@ -143,6 +143,15 @@ class TransformerEncoderLayer(nn.Module):
 
         self.activation = _get_activation_fn(activation)
         self.normalize_before = normalize_before
+        
+        if enc_pos_concat1x1 == True and enc_pos_concat1x1_mode == 0:
+            self.self_attn_pos_trans = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
+        elif enc_pos_concat1x1 == True and enc_pos_concat1x1_mode == 1:
+            self.self_attn_pos_trans_q = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans_q.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
+            self.self_attn_pos_trans_k = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans_k.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
 
     def with_pos_embed(self, tensor, pos: Optional[Tensor]):
         return tensor if pos is None else tensor + pos
@@ -152,7 +161,16 @@ class TransformerEncoderLayer(nn.Module):
                      src_mask: Optional[Tensor] = None,
                      src_key_padding_mask: Optional[Tensor] = None,
                      pos: Optional[Tensor] = None):
-        q = k = self.with_pos_embed(src, pos)
+        if self.enc_pos_concat1x1 == True and self.enc_pos_concat1x1_mode == 0:
+            cat_feat = torch.cat([src, pos], dim=2)
+            # print(cat_feat.shape)
+            q = k = self.self_attn_pos_trans(cat_feat)
+        elif self.enc_pos_concat1x1 == True and self.enc_pos_concat1x1_mode == 1:
+            cat_feat = torch.cat([src, pos], dim=2)
+            q = self.self_attn_pos_trans_q(cat_feat)
+            k = self.self_attn_pos_trans_k(cat_feat)
+        else:
+            q = k = self.with_pos_embed(src, pos)
         src2 = self.self_attn(q, k, value=src, attn_mask=src_mask,
                               key_padding_mask=src_key_padding_mask)[0]
         src = src + self.dropout1(src2)
