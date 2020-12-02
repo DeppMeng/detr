@@ -206,7 +206,7 @@ class TransformerDecoderLayer(nn.Module):
             self.self_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
             self.cross_attn_pos_trans = nn.Linear(512, 256, bias=False)
             self.cross_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
-        elif: dec_pos_concat1x1 == True and dec_pos_concat1x1_mode == 1:
+        elif dec_pos_concat1x1 == True and dec_pos_concat1x1_mode == 1:
             self.self_attn_pos_trans_q = nn.Linear(512, 256, bias=False)
             self.self_attn_pos_trans_q.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
             self.self_attn_pos_trans_k = nn.Linear(512, 256, bias=False)
@@ -244,7 +244,7 @@ class TransformerDecoderLayer(nn.Module):
             cat_feat = torch.cat([tgt, query_pos], dim=2)
             # print(cat_feat.shape)
             q = k = self.self_attn_pos_trans(cat_feat)
-        elif: self.dec_pos_concat1x1 == True and self.dec_pos_concat1x1_mode == 1:
+        elif self.dec_pos_concat1x1 == True and self.dec_pos_concat1x1_mode == 1:
             cat_feat = torch.cat([tgt, query_pos], dim=2)
             q = self.self_attn_pos_trans_q(cat_feat)
             k = self.self_attn_pos_trans_k(cat_feat)
