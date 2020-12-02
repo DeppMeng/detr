@@ -124,6 +124,7 @@ def get_args_parser():
     parser.add_argument('--objquery_transv3', action='store_true')
 
     parser.add_argument('--dec_pos_concat1x1', action='store_true')
+    parser.add_argument('--dec_pos_transv1', action='store_true')
     return parser
 
 

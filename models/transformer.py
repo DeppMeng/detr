@@ -29,7 +29,8 @@ class Transformer(nn.Module):
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
         decoder_layer = TransformerDecoderLayer(d_model, nhead, dim_feedforward,
-                                                dropout, activation, normalize_before, args.dec_pos_concat1x1)
+                                                dropout, activation, normalize_before, args.dec_pos_concat1x1,
+                                                args.dec_pos_transv1)
         decoder_norm = nn.LayerNorm(d_model)
         self.decoder = TransformerDecoder(decoder_layer, num_decoder_layers, decoder_norm,
                                           return_intermediate=return_intermediate_dec)
@@ -187,7 +188,7 @@ class TransformerEncoderLayer(nn.Module):
 class TransformerDecoderLayer(nn.Module):
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
-                 activation="relu", normalize_before=False, dec_pos_concat1x1=False):
+                 activation="relu", normalize_before=False, dec_pos_concat1x1=False, dec_pos_transv1=False):
         super().__init__()
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         self.multihead_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
@@ -196,11 +197,20 @@ class TransformerDecoderLayer(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.linear2 = nn.Linear(dim_feedforward, d_model)
         self.dec_pos_concat1x1 = dec_pos_concat1x1
+        self.dec_pos_transv1 = dec_pos_transv1
+        # instead of directly add feature and positional embedding
+        # we try to concat (256->512) + 1x1 (512->256) to fuse the feature and the positional embedding
         if dec_pos_concat1x1:
             self.self_attn_pos_trans = nn.Linear(512, 256, bias=False)
             self.self_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
             self.cross_attn_pos_trans = nn.Linear(512, 256, bias=False)
             self.cross_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
+
+        if dec_pos_transv1:
+            self.self_attn_pos_trans_post = nn.Linear(100, 100, bias=False)
+            self.self_attn_pos_trans_post.weight.data.copy_(torch.eye(100))
+            self.cross_attn_pos_trans_post = nn.Linear(100, 100, bias=False)
+            self.cross_attn_pos_trans_post.weight.data.copy_(torch.eye(100))
 
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
@@ -223,7 +233,9 @@ class TransformerDecoderLayer(nn.Module):
                      pos: Optional[Tensor] = None,
                      query_pos: Optional[Tensor] = None):
         if self.dec_pos_concat1x1:
-            q = k = self.self_attn_pos_trans(torch.cat([tgt, query_pos], dim=1))
+            cat_feat = torch.cat([tgt, query_pos], dim=1)
+            print(cat_feat.shape)
+            q = k = self.self_attn_pos_trans(cat_feat)
         else:
             q = k = self.with_pos_embed(tgt, query_pos)
         tgt2 = self.self_attn(q, k, value=tgt, attn_mask=tgt_mask,
