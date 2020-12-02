@@ -24,12 +24,12 @@ class Transformer(nn.Module):
         super().__init__()
 
         encoder_layer = TransformerEncoderLayer(d_model, nhead, dim_feedforward,
-                                                dropout, activation, normalize_before, args.enc_pos_concat1x1, args.enc_pos_concat1x1_mode)
+                                                dropout, activation, normalize_before, args.enc_pos_concat1x1, args.enc_pos_concat1x1_mode, args.enc_pos_concat1x1_bias)
         encoder_norm = nn.LayerNorm(d_model) if normalize_before else None
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
         decoder_layer = TransformerDecoderLayer(d_model, nhead, dim_feedforward,
-                                                dropout, activation, normalize_before, args.dec_pos_concat1x1, args.dec_pos_concat1x1_mode,
+                                                dropout, activation, normalize_before, args.dec_pos_concat1x1, args.dec_pos_concat1x1_mode, args.dec_pos_concat1x1_bias,
                                                 args.dec_pos_transv1)
         decoder_norm = nn.LayerNorm(d_model)
         self.decoder = TransformerDecoder(decoder_layer, num_decoder_layers, decoder_norm,
@@ -128,7 +128,7 @@ class TransformerDecoder(nn.Module):
 class TransformerEncoderLayer(nn.Module):
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
-                 activation="relu", normalize_before=False, enc_pos_concat1x1=False, enc_pos_concat1x1_mode=0):
+                 activation="relu", normalize_before=False, enc_pos_concat1x1=False, enc_pos_concat1x1_mode=0, enc_pos_concat1x1_bias=False):
         super().__init__()
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         # Implementation of Feedforward model
@@ -147,12 +147,12 @@ class TransformerEncoderLayer(nn.Module):
         self.enc_pos_concat1x1_mode = enc_pos_concat1x1_mode
         
         if enc_pos_concat1x1 == True and enc_pos_concat1x1_mode == 0:
-            self.self_attn_pos_trans = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans = nn.Linear(512, 256, bias=enc_pos_concat1x1_bias)
             self.self_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
         elif enc_pos_concat1x1 == True and enc_pos_concat1x1_mode == 1:
-            self.self_attn_pos_trans_q = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans_q = nn.Linear(512, 256, bias=enc_pos_concat1x1_bias)
             self.self_attn_pos_trans_q.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
-            self.self_attn_pos_trans_k = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans_k = nn.Linear(512, 256, bias=enc_pos_concat1x1_bias)
             self.self_attn_pos_trans_k.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
 
     def with_pos_embed(self, tensor, pos: Optional[Tensor]):
@@ -208,7 +208,7 @@ class TransformerEncoderLayer(nn.Module):
 class TransformerDecoderLayer(nn.Module):
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
-                 activation="relu", normalize_before=False, dec_pos_concat1x1=False, dec_pos_concat1x1_mode=0, dec_pos_transv1=False):
+                 activation="relu", normalize_before=False, dec_pos_concat1x1=False, dec_pos_concat1x1_mode=0, dec_pos_concat1x1_bias=False, dec_pos_transv1=False):
         super().__init__()
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         self.multihead_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
@@ -222,16 +222,16 @@ class TransformerDecoderLayer(nn.Module):
         # instead of directly add feature and positional embedding
         # we try to concat (256->512) + 1x1 (512->256) to fuse the feature and the positional embedding
         if dec_pos_concat1x1 == True and dec_pos_concat1x1_mode == 0:
-            self.self_attn_pos_trans = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans = nn.Linear(512, 256, bias=dec_pos_concat1x1_bias)
             self.self_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
-            self.cross_attn_pos_trans = nn.Linear(512, 256, bias=False)
+            self.cross_attn_pos_trans = nn.Linear(512, 256, bias=dec_pos_concat1x1_bias)
             self.cross_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
         elif dec_pos_concat1x1 == True and (dec_pos_concat1x1_mode == 1 or dec_pos_concat1x1_mode == 2):
-            self.self_attn_pos_trans_q = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans_q = nn.Linear(512, 256, bias=dec_pos_concat1x1_bias)
             self.self_attn_pos_trans_q.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
-            self.self_attn_pos_trans_k = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans_k = nn.Linear(512, 256, bias=dec_pos_concat1x1_bias)
             self.self_attn_pos_trans_k.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
-            self.cross_attn_pos_trans = nn.Linear(512, 256, bias=False)
+            self.cross_attn_pos_trans = nn.Linear(512, 256, bias=dec_pos_concat1x1_bias)
             self.cross_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
         if dec_pos_concat1x1 == True and dec_pos_concat1x1_mode == 2:
             self.cross_attn_key_pos_trans = nn.Linear(512, 256, bias=False)
