@@ -121,6 +121,12 @@ def get_args_parser():
 
     parser.add_argument('--objquery_trans', action='store_true')
     parser.add_argument('--objquery_transv2', action='store_true')
+
+
+    
+    parser.add_argument('--clsnum', action='store_true')
+    parser.add_argument('--objnum_loss_coef', default=1, type=float)
+    
     return parser
 
 
@@ -230,7 +236,7 @@ def main(args):
             sampler_train.set_epoch(epoch)
         train_stats = train_one_epoch(
             model, criterion, data_loader_train, optimizer, device, epoch,
-            args.clip_max_norm)
+            args.clip_max_norm, args)
         lr_scheduler.step()
         if args.output_dir:
             checkpoint_paths = [output_dir / 'checkpoint.pth']
@@ -248,7 +254,7 @@ def main(args):
 
         if (epoch + 1) % args.eval_freq == 0:
             test_stats, coco_evaluator = evaluate(
-                model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir
+                model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir, args
             )
 
             log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},

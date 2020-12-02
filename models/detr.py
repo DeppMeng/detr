@@ -70,6 +70,8 @@ class DETR(nn.Module):
             self.obj_trans = nn.Linear(256, 256, bias=False)
             self.obj_trans.weight.data.copy_(torch.eye(256))
 
+        self.clsnum = args.clsnum
+
     def forward(self, samples: NestedTensor):
         """ The forward expects a NestedTensor, which consists of:
                - samples.tensor: batched images, of shape [batch_size x 3 x H x W]
@@ -133,14 +135,20 @@ class DETR(nn.Module):
         else:
             obj_query_input = self.query_embed.weight
         
-        hs = self.transformer(self.input_proj(src), mask, obj_query_input, pos[-1])[0]
+        if self.clsnum:
+            hs, objnum = self.transformer(self.input_proj(src), mask, obj_query_input, pos[-1])[0]
+        else:
+            hs = self.transformer(self.input_proj(src), mask, obj_query_input, pos[-1])[0]
 
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()
         out = {'pred_logits': outputs_class[-1], 'pred_boxes': outputs_coord[-1]}
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord)
-        return out
+        if self.clsnum:
+            return out, objnum
+        else:
+            return out
 
     @torch.jit.unused
     def _set_aux_loss(self, outputs_class, outputs_coord):
@@ -390,7 +398,10 @@ def build(args):
 
     backbone = build_backbone(args)
 
-    transformer = build_transformer(args)
+    if args.clsnum:
+        transformer = build_transformer_w_clsnum_objmask(args)
+    else:
+        transformer = build_transformer(args)
 
     model = DETR(
         backbone,
@@ -406,6 +417,8 @@ def build(args):
     if args.masks:
         weight_dict["loss_mask"] = args.mask_loss_coef
         weight_dict["loss_dice"] = args.dice_loss_coef
+    if args.clsnum:
+        weight_dict["loss_objnum"] = args.objnum_loss_coef
     # TODO this is a hack
     if args.aux_loss:
         aux_weight_dict = {}

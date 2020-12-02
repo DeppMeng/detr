@@ -9,6 +9,7 @@ import logging
 from typing import Iterable
 
 import torch
+import torch.nn.functional as F
 
 import util.misc as utils
 from datasets.coco_eval import CocoEvaluator
@@ -18,7 +19,7 @@ logger = logging.getLogger("DETR")
 
 def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
-                    device: torch.device, epoch: int, max_norm: float = 0):
+                    device: torch.device, epoch: int, max_norm: float = 0, args=None):
     model.train()
     criterion.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
@@ -30,10 +31,18 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
     for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
         samples = samples.to(device)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-        print(targets)
+        if args.clsnum:
+            obj_num_target = torch.tensor([i['labels'].shape[0] for i in targets])
+            ObjNumLoss = torch.nn.SmoothL1Loss()
 
-        outputs = model(samples)
+            outputs, output_obj_num = model(samples)
+            loss_objnum = ObjNumLoss(output_obj_num, obj_num_target)
+        else:
+            outputs = model(samples)
+
         loss_dict = criterion(outputs, targets)
+        if args.clsnum:
+            loss_dict['loss_objnum'] = loss_objnum
         weight_dict = criterion.weight_dict
         losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
 
@@ -68,7 +77,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
 
 
 @torch.no_grad()
-def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, output_dir):
+def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, output_dir, args=None):
     model.eval()
     criterion.eval()
 
@@ -92,7 +101,10 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         samples = samples.to(device)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-        outputs = model(samples)
+        if args.clsnum:
+            outputs, output_obj_num = model(samples)
+        else:
+            outputs = model(samples)
         loss_dict = criterion(outputs, targets)
         weight_dict = criterion.weight_dict
 
