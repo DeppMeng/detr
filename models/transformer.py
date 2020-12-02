@@ -265,7 +265,7 @@ class TransformerDecoderLayer(nn.Module):
         else:
             query_fused = self.with_pos_embed(tgt, query_pos)
         if self.dec_pos_concat1x1 == True and self.dec_pos_concat1x1_mode == 2:
-            query_fused = self.cross_attn_key_pos_trans(torch.cat([memory, pos], dim=2))
+            key_fused = self.cross_attn_key_pos_trans(torch.cat([memory, pos], dim=2))
         else:
             key_fused = self.with_pos_embed(memory, pos)
         tgt2 = self.multihead_attn(query=query_fused,
