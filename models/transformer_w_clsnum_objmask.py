@@ -62,9 +62,7 @@ class Transformer(nn.Module):
         tgt = torch.zeros_like(query_embed)
         # here the memory has the shape 256 x HW??
         memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
-        print(memory.shape)
-        print(self.gap(memory.permute(1, 2, 0)).shape)
-        obj_num = self.objnum_embed(self.gap(memory))
+        obj_num = self.objnum_embed(self.gap(memory.permute(1, 2, 0)).squeeze(2))
 
         hs = self.decoder(tgt, memory, memory_key_padding_mask=mask,
                           pos=pos_embed, query_pos=query_embed)
