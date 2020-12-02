@@ -135,10 +135,10 @@ class DETR(nn.Module):
         else:
             obj_query_input = self.query_embed.weight
         
-        hs = self.transformer(self.input_proj(src), mask, obj_query_input, pos[-1])[0]
+        t_outputs = self.transformer(self.input_proj(src), mask, obj_query_input, pos[-1])
         if self.clsnum:
-            objnum = hs[-1]
-            hs = hs[:-1]
+            objnum = t_outputs[-1]
+            hs = t_outputs[0]
 
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()
