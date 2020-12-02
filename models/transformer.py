@@ -233,16 +233,19 @@ class TransformerDecoderLayer(nn.Module):
                      pos: Optional[Tensor] = None,
                      query_pos: Optional[Tensor] = None):
         if self.dec_pos_concat1x1:
-            cat_feat = torch.cat([tgt, query_pos], dim=1)
-            print(cat_feat.shape)
+            cat_feat = torch.cat([tgt, query_pos], dim=2)
+            # print(cat_feat.shape)
             q = k = self.self_attn_pos_trans(cat_feat)
         else:
             q = k = self.with_pos_embed(tgt, query_pos)
+        
+        if self.dec_pos_transv1:
+            q = k = self.self_attn_pos_trans_post(q.T).T
         tgt2 = self.self_attn(q, k, value=tgt, attn_mask=tgt_mask,
                               key_padding_mask=tgt_key_padding_mask)[0]
         tgt = tgt + self.dropout1(tgt2)
         tgt = self.norm1(tgt)
-        tgt2 = self.multihead_attn(query=self.cross_attn_pos_trans(torch.cat([tgt, query_pos], dim=1)) if self.dec_pos_concat1x1 else self.with_pos_embed(tgt, query_pos),
+        tgt2 = self.multihead_attn(query=self.cross_attn_pos_trans(torch.cat([tgt, query_pos], dim=2)) if self.dec_pos_concat1x1 else self.with_pos_embed(tgt, query_pos),
                                    key=self.with_pos_embed(memory, pos),
                                    value=memory, attn_mask=memory_mask,
                                    key_padding_mask=memory_key_padding_mask)[0]
@@ -262,14 +265,14 @@ class TransformerDecoderLayer(nn.Module):
                     query_pos: Optional[Tensor] = None):
         tgt2 = self.norm1(tgt)
         if self.dec_pos_concat1x1:
-            q = k = self.self_attn_pos_trans(torch.cat([tgt2, query_pos], dim=1))
+            q = k = self.self_attn_pos_trans(torch.cat([tgt2, query_pos], dim=2))
         else:
             q = k = self.with_pos_embed(tgt2, query_pos)
         tgt2 = self.self_attn(q, k, value=tgt2, attn_mask=tgt_mask,
                               key_padding_mask=tgt_key_padding_mask)[0]
         tgt = tgt + self.dropout1(tgt2)
         tgt2 = self.norm2(tgt)
-        tgt2 = self.multihead_attn(query=self.cross_attn_pos_trans(torch.cat([tgt2, query_pos], dim=1)) if self.dec_pos_concat1x1 else self.with_pos_embed(tgt2, query_pos),
+        tgt2 = self.multihead_attn(query=self.cross_attn_pos_trans(torch.cat([tgt2, query_pos], dim=2)) if self.dec_pos_concat1x1 else self.with_pos_embed(tgt2, query_pos),
                                    key=self.with_pos_embed(memory, pos),
                                    value=memory, attn_mask=memory_mask,
                                    key_padding_mask=memory_key_padding_mask)[0]
