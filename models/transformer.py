@@ -24,12 +24,12 @@ class Transformer(nn.Module):
         super().__init__()
 
         encoder_layer = TransformerEncoderLayer(d_model, nhead, dim_feedforward,
-                                                dropout, activation, normalize_before)
+                                                dropout, activation, normalize_before, args.enc_pos_concat1x1, args.enc_pos_concat1x1_mode)
         encoder_norm = nn.LayerNorm(d_model) if normalize_before else None
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
         decoder_layer = TransformerDecoderLayer(d_model, nhead, dim_feedforward,
-                                                dropout, activation, normalize_before, args.dec_pos_concat1x1,
+                                                dropout, activation, normalize_before, args.dec_pos_concat1x1, args.dec_pos_concat1x1_mode,
                                                 args.dec_pos_transv1)
         decoder_norm = nn.LayerNorm(d_model)
         self.decoder = TransformerDecoder(decoder_layer, num_decoder_layers, decoder_norm,
@@ -128,7 +128,7 @@ class TransformerDecoder(nn.Module):
 class TransformerEncoderLayer(nn.Module):
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
-                 activation="relu", normalize_before=False):
+                 activation="relu", normalize_before=False, enc_pos_concat1x1=False, enc_pos_concat1x1_mode=0):
         super().__init__()
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         # Implementation of Feedforward model
@@ -188,7 +188,7 @@ class TransformerEncoderLayer(nn.Module):
 class TransformerDecoderLayer(nn.Module):
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
-                 activation="relu", normalize_before=False, dec_pos_concat1x1=False, dec_pos_transv1=False):
+                 activation="relu", normalize_before=False, dec_pos_concat1x1=False, dec_pos_concat1x1_mode=0, dec_pos_transv1=False):
         super().__init__()
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         self.multihead_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
@@ -198,19 +198,27 @@ class TransformerDecoderLayer(nn.Module):
         self.linear2 = nn.Linear(dim_feedforward, d_model)
         self.dec_pos_concat1x1 = dec_pos_concat1x1
         self.dec_pos_transv1 = dec_pos_transv1
+        self.dec_pos_concat1x1_mode = dec_pos_concat1x1_mode
         # instead of directly add feature and positional embedding
         # we try to concat (256->512) + 1x1 (512->256) to fuse the feature and the positional embedding
-        if dec_pos_concat1x1:
+        if dec_pos_concat1x1 == True and dec_pos_concat1x1_mode == 0:
             self.self_attn_pos_trans = nn.Linear(512, 256, bias=False)
             self.self_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
             self.cross_attn_pos_trans = nn.Linear(512, 256, bias=False)
             self.cross_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
+        elif: dec_pos_concat1x1 == True and dec_pos_concat1x1_mode == 1:
+            self.self_attn_pos_trans_q = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans_q.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
+            self.self_attn_pos_trans_k = nn.Linear(512, 256, bias=False)
+            self.self_attn_pos_trans_k.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
+            self.cross_attn_pos_trans = nn.Linear(512, 256, bias=False)
+            self.cross_attn_pos_trans.weight.data.copy_(torch.cat([torch.eye(256), torch.eye(256)], dim=1))
 
-        if dec_pos_transv1:
-            self.self_attn_pos_trans_post = nn.Linear(100, 100, bias=False)
-            self.self_attn_pos_trans_post.weight.data.copy_(torch.eye(100))
-            self.cross_attn_pos_trans_post = nn.Linear(100, 100, bias=False)
-            self.cross_attn_pos_trans_post.weight.data.copy_(torch.eye(100))
+        # if dec_pos_transv1:
+        #     self.self_attn_pos_trans_post = nn.Linear(100, 100, bias=False)
+        #     self.self_attn_pos_trans_post.weight.data.copy_(torch.eye(100))
+        #     self.cross_attn_pos_trans_post = nn.Linear(100, 100, bias=False)
+        #     self.cross_attn_pos_trans_post.weight.data.copy_(torch.eye(100))
 
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
@@ -232,20 +240,28 @@ class TransformerDecoderLayer(nn.Module):
                      memory_key_padding_mask: Optional[Tensor] = None,
                      pos: Optional[Tensor] = None,
                      query_pos: Optional[Tensor] = None):
-        if self.dec_pos_concat1x1:
+        if self.dec_pos_concat1x1 == True and self.dec_pos_concat1x1_mode == 0:
             cat_feat = torch.cat([tgt, query_pos], dim=2)
             # print(cat_feat.shape)
             q = k = self.self_attn_pos_trans(cat_feat)
+        elif: self.dec_pos_concat1x1 == True and self.dec_pos_concat1x1_mode == 1:
+            cat_feat = torch.cat([tgt, query_pos], dim=2)
+            q = self.self_attn_pos_trans_q(cat_feat)
+            k = self.self_attn_pos_trans_k(cat_feat)
         else:
             q = k = self.with_pos_embed(tgt, query_pos)
         
-        if self.dec_pos_transv1:
-            q = k = self.self_attn_pos_trans_post(q.T).T
+        # if self.dec_pos_transv1:
+        #     q = k = self.self_attn_pos_trans_post(q.T).T
         tgt2 = self.self_attn(q, k, value=tgt, attn_mask=tgt_mask,
                               key_padding_mask=tgt_key_padding_mask)[0]
         tgt = tgt + self.dropout1(tgt2)
         tgt = self.norm1(tgt)
-        tgt2 = self.multihead_attn(query=self.cross_attn_pos_trans(torch.cat([tgt, query_pos], dim=2)) if self.dec_pos_concat1x1 else self.with_pos_embed(tgt, query_pos),
+        if self.dec_pos_concat1x1:
+            query_fused = self.cross_attn_pos_trans(torch.cat([tgt, query_pos], dim=2))
+        else:
+            query_fused = self.with_pos_embed(tgt, query_pos)
+        tgt2 = self.multihead_attn(query=query_fused,
                                    key=self.with_pos_embed(memory, pos),
                                    value=memory, attn_mask=memory_mask,
                                    key_padding_mask=memory_key_padding_mask)[0]
