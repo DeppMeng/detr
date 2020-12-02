@@ -33,11 +33,9 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
         if args.clsnum:
             obj_num_target = torch.tensor([i['labels'].shape[0] for i in targets], dtype=torch.float).to(device)
-            print(obj_num_target.shape)
             ObjNumLoss = torch.nn.SmoothL1Loss()
 
             outputs, output_obj_num = model(samples)
-            print(output_obj_num.shape)
             loss_objnum = ObjNumLoss(output_obj_num, obj_num_target)
         else:
             outputs = model(samples)
