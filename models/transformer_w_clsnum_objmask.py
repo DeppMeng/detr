@@ -35,11 +35,9 @@ class Transformer(nn.Module):
                                           return_intermediate=return_intermediate_dec)
 
         self.objnum_embed = nn.Sequential(
-            [
                 nn.Linear(d_model, d_model),
                 nn.ReLU(),
                 nn.Linear(d_model, 1)
-            ]
         )
         self.gap = nn.AdaptiveAvgPool1d(1)
 
