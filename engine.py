@@ -102,7 +102,10 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
         if args.clsnum:
+            obj_num_target = torch.tensor([i['labels'].shape[0] for i in targets], dtype=torch.float).to(device)
             outputs, output_obj_num = model(samples)
+            print(obj_num_target)
+            print(output_obj_num)
         else:
             outputs = model(samples)
         loss_dict = criterion(outputs, targets)
