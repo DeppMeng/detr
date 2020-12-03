@@ -138,7 +138,7 @@ class DETR(nn.Module):
         t_outputs = self.transformer(self.input_proj(src), mask, obj_query_input, pos[-1])
         if self.clsnum:
             objnum = t_outputs[-1]
-            hs = t_outputs[0]
+        hs = t_outputs[0]
 
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()

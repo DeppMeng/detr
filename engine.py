@@ -118,7 +118,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             obj_num_target_allgpu = utils.concat_all_gather(obj_num_target)
             obj_num_output_allgpu = utils.concat_all_gather(obj_num_output)
             obj_num_target_numpy = obj_num_target_allgpu.cpu().numpy().astype(int)
-            obj_num_output_numpy = obj_num_output_allgpu.squeeze(1).cpu().numpy().astype(int)
+            obj_num_output_numpy = obj_num_output_allgpu.cpu().numpy().astype(int)
             total_obj_count += obj_num_target_numpy.shape[0]
             for i in range(obj_num_target_numpy.shape[0]):
                 if obj_num_target_numpy[i] == obj_num_output_numpy[i]:
