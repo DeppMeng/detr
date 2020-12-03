@@ -162,9 +162,9 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             panoptic_evaluator.update(res_pano)
 
     logger.info('Total object count: {}'.format(total_obj_count))
-    logger.info('Total correct count (error tolerance 0): {}, accuracy: {:.2f}%'.format(total_obj_correct_tol0_count, total_obj_correct_tol0_count/total_obj_count))
-    logger.info('Total correct count (error tolerance 1): {}, accuracy: {:.2f}%'.format(total_obj_correct_tol1_count, total_obj_correct_tol1_count/total_obj_count))
-    logger.info('Total correct count (error tolerance 2): {}, accuracy: {:.2f}%'.format(total_obj_correct_tol2_count, total_obj_correct_tol2_count/total_obj_count))
+    logger.info('Total correct count (error tolerance 0): {}, accuracy: {:.2f}%'.format(total_obj_correct_tol0_count, total_obj_correct_tol0_count/total_obj_count * 100))
+    logger.info('Total correct count (error tolerance 1): {}, accuracy: {:.2f}%'.format(total_obj_correct_tol1_count, total_obj_correct_tol1_count/total_obj_count * 100))
+    logger.info('Total correct count (error tolerance 2): {}, accuracy: {:.2f}%'.format(total_obj_correct_tol2_count, total_obj_correct_tol2_count/total_obj_count * 100))
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     logger.info("Averaged stats: {}".format(metric_logger))
