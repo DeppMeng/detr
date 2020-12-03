@@ -126,6 +126,7 @@ def get_args_parser():
 
     
     parser.add_argument('--clsnum', action='store_true')
+    parser.add_argument('--clsnum_loss_type', default='SmoothL1', type=str)
     parser.add_argument('--objnum_loss_coef', default=1, type=float)
     
     return parser

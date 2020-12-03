@@ -33,7 +33,10 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
         if args.clsnum:
             obj_num_target = torch.tensor([i['labels'].shape[0] for i in targets], dtype=torch.float).to(device)
-            ObjNumLoss = torch.nn.SmoothL1Loss()
+            if args.clsnum_loss_type == 'SmoothL1':
+                ObjNumLoss = torch.nn.SmoothL1Loss()
+            else:
+                raise ValueError('Invalid loss type: {}'.format(args.clsnum_loss_type))
 
             outputs, output_obj_num = model(samples)
             loss_objnum = ObjNumLoss(output_obj_num, obj_num_target)
