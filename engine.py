@@ -96,6 +96,12 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             data_loader.dataset.ann_folder,
             output_dir=os.path.join(output_dir, "panoptic_eval"),
         )
+    
+    if args.clsnum:
+        total_obj_count = 0
+        total_obj_correct_tol0_count = 0
+        total_obj_correct_tol1_count = 0
+        total_obj_correct_tol2_count = 0
 
     for samples, targets in metric_logger.log_every(data_loader, 10, header):
         samples = samples.to(device)
@@ -103,11 +109,23 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
 
         if args.clsnum:
             obj_num_target = torch.tensor([i['labels'].shape[0] for i in targets], dtype=torch.float).to(device)
-            outputs, output_obj_num = model(samples)
-            obj_num_target_display = obj_num_target.cpu().numpy().astype(int)
-            output_obj_num_display = output_obj_num.squeeze(1).cpu().numpy().astype(int)
-            print(obj_num_target_display)
-            print(output_obj_num_display)
+            outputs, obj_num_output = model(samples)
+            # obj_num_target_display = obj_num_target.cpu().numpy().astype(int)
+            # output_obj_num_display = output_obj_num.squeeze(1).cpu().numpy().astype(int)
+            obj_num_target_allgpu = utils.concat_all_gather(obj_num_target)
+            obj_num_output_allgpu = utils.concat_all_gather(obj_num_output)
+            obj_num_target_numpy = obj_num_target_allgpu.cpu().numpy().astype(int)
+            obj_num_output_numpy = obj_num_output_allgpu.squeeze(1).cpu().numpy().astype(int)
+            total_obj_count += obj_num_target_numpy.shape[0]
+            for i in range(obj_num_target_numpy.shape[0]):
+                if obj_num_target_numpy[i] == obj_num_output_numpy[i]:
+                    total_obj_correct_tol0_count += 1
+                if obj_num_target_numpy[i] - 1 <= obj_num_output_numpy[i] and obj_num_target_numpy[i] + 1 >= obj_num_output_numpy[i]:
+                    total_obj_correct_tol1_count += 1
+                if obj_num_target_numpy[i] - 2 <= obj_num_output_numpy[i] and obj_num_target_numpy[i] + 2 >= obj_num_output_numpy[i]:
+                    total_obj_correct_tol1_count += 1
+            # print(obj_num_target_display)
+            # print(output_obj_num_display)
         else:
             outputs = model(samples)
         loss_dict = criterion(outputs, targets)
@@ -143,6 +161,10 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
 
             panoptic_evaluator.update(res_pano)
 
+    logger.info('Total object count: {}'.format(total_obj_count))
+    logger.info('Total correct count (error tolerance 0): {}, accuracy: {:.2f}%'.format(total_obj_count, total_obj_correct_tol0_count/total_obj_count))
+    logger.info('Total correct count (error tolerance 1): {}, accuracy: {:.2f}%'.format(total_obj_count, total_obj_correct_tol1_count/total_obj_count))
+    logger.info('Total correct count (error tolerance 2): {}, accuracy: {:.2f}%'.format(total_obj_count, total_obj_correct_tol2_count/total_obj_count))
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     logger.info("Averaged stats: {}".format(metric_logger))
