@@ -131,6 +131,7 @@ def get_args_parser():
     parser.add_argument('--dec_pos_concat1x1_mode', default=0, type=int)
     
     parser.add_argument('--dec_pos_transv1', action='store_true')
+    parser.add_argument('--pose_concat1x1_init_mode', default='eye', type=str)
     return parser
 
 
