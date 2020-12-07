@@ -420,7 +420,7 @@ def build(args):
     if args.clsdec_regdec:
         cls_transformer = build_transformer(args)
         reg_transformer = build_transformer(args)
-        transformer = [cls_transformer, reg_transformer]
+        transformer = nn.ModuleList([cls_transformer, reg_transformer])
     else:
         transformer = build_transformer(args)
 
