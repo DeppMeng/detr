@@ -51,9 +51,15 @@ class DETR(nn.Module):
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
 
         if sine_query_embed_v3 == False and sine_query_embed_v4 == False:
-            self.query_embed = nn.Embedding(num_queries, hidden_dim)
+            if args.clsdec_regdec:
+                self.query_embed_cls = nn.Embedding(num_queries, hidden_dim)
+                self.query_embed_reg = nn.Embedding(num_queries, hidden_dim)
+            else:
+                self.query_embed = nn.Embedding(num_queries, hidden_dim)
         else:
             self.query_embed = None
+            if args.clsdec_regdec:
+                raise NotImplementedError('Fixed sine position embedding w/ clsdec regdec is not supported yet.')
         self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
         self.backbone = backbone
         self.aux_loss = args.aux_loss
@@ -149,8 +155,9 @@ class DETR(nn.Module):
             obj_query_input = self.query_embed.weight
         
         if self.args.clsdec_regdec:
-            hs_cls = self.transformer[0](self.input_proj(src), mask, obj_query_input, pos[-1])[0]
-            hs_reg = self.transformer[1](self.input_proj(src), mask, obj_query_input, pos[-1])[0]
+            # Need to be refined, does not consider the fixed sine position embedding case here.
+            hs_cls = self.transformer[0](self.input_proj(src), mask, self.query_embed_cls.weight, pos[-1])[0]
+            hs_reg = self.transformer[1](self.input_proj(src), mask, self.query_embed_reg.weight, pos[-1])[0]
             outputs_class = self.class_embed(hs_cls)
             outputs_coord = self.bbox_embed(hs_reg).sigmoid()
         else:
