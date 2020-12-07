@@ -467,7 +467,7 @@ class DisentangledV1Transformer(nn.Module):
         hss = []
         hss.append(hs_cls)
         
-        query_embed_reg_list = query_embed_reg.split(query_embed_reg.shape[0] // 4, dim=0)
+        query_embed_reg_list = query_embed_reg.split(query_embed_reg.shape[0] // 4, dim=1)
         query_embed_reg_list = [embed.unsqueeze(1).repeat(1, bs, 1) for embed in query_embed_reg_list]
 
         tgt_reg = torch.zeros_like(query_embed_reg_list[0])
