@@ -144,15 +144,16 @@ class DETR(nn.Module):
         src, mask = features[-1].decompose()
         assert mask is not None
 
-        if self.objquery_trans:
-            obj_query_input = self.obj_trans(self.query_embed.weight.T).T
-        elif self.objquery_transv2:
-            obj_query_input = self.obj_trans(self.query_embed.weight)
-        elif self.objquery_transv3:
-            obj_query_input = self.obj_trans1(self.query_embed.weight.T).T
-            obj_query_input = self.obj_trans2(obj_query_input)
-        else:
-            obj_query_input = self.query_embed.weight
+        if not args.clsdec_regdec:
+            if self.objquery_trans:
+                obj_query_input = self.obj_trans(self.query_embed.weight.T).T
+            elif self.objquery_transv2:
+                obj_query_input = self.obj_trans(self.query_embed.weight)
+            elif self.objquery_transv3:
+                obj_query_input = self.obj_trans1(self.query_embed.weight.T).T
+                obj_query_input = self.obj_trans2(obj_query_input)
+            else:
+                obj_query_input = self.query_embed.weight
         
         if self.args.clsdec_regdec:
             # Need to be refined, does not consider the fixed sine position embedding case here.
