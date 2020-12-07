@@ -236,8 +236,8 @@ class SetCriterion(nn.Module):
         src_boxes = outputs['pred_boxes'][idx]
         target_boxes = torch.cat([t['boxes'][i] for t, (_, i) in zip(targets, indices)], dim=0)
 
-        target_xyxy_box = box_ops.box_cxcywh_to_xyxy(target_boxes)
-        print(target_xyxy_box)
+        # target_xyxy_box = box_ops.box_cxcywh_to_xyxy(target_boxes)
+        # print(target_xyxy_box)
 
         loss_bbox = F.l1_loss(src_boxes, target_boxes, reduction='none')
 
