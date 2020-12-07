@@ -278,7 +278,8 @@ class TransformerDecoderLayer(nn.Module):
             k = self.self_attn_pos_trans_k(cat_feat)
         else:
             q = k = self.with_pos_embed(tgt, query_pos)
-        
+        print(q.shape)
+        print(tgt.shape)
         # if self.dec_pos_transv1:
         #     q = k = self.self_attn_pos_trans_post(q.T).T
         tgt2 = self.self_attn(q, k, value=tgt, attn_mask=tgt_mask,
@@ -472,6 +473,8 @@ class DisentangledV1Transformer(nn.Module):
         query_embed_reg_list = [embed.unsqueeze(1).repeat(1, bs, 1) for embed in query_embed_reg_list]
 
         tgt_reg = torch.zeros_like(query_embed_reg_list[0])
+        print(tgt_reg.shape)
+        print(query_embed_reg_list[0].shape)
 
         for i in range(4):
             hss.append(
