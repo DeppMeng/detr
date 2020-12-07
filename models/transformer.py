@@ -415,7 +415,14 @@ class DisentangledV1Transformer(nn.Module):
         encoder_norm = nn.LayerNorm(d_model) if normalize_before else None
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
-        decoder_norm = nn.LayerNorm(d_model // 4)
+        decoder_norm_cls = nn.LayerNorm(d_model)
+        decoder_norm_reg = nn.LayerNorm(d_model // 4)
+
+        decoder_layer_cls = TransformerDecoderLayer(d_model, nhead, dim_feedforward,
+                                                dropout, activation, normalize_before, args.dec_pos_concat1x1, args.dec_pos_concat1x1_mode, args.dec_pos_concat1x1_bias,
+                                                args.dec_pos_transv1, args.pose_concat1x1_init_mode)
+        self.decoder_cls = TransformerDecoder(decoder_layer_cls, num_decoder_layers, decoder_norm_cls,
+                                          return_intermediate=return_intermediate_dec)
         decoder_layers = []
         decoders = []
         for i in range(4):
@@ -428,10 +435,10 @@ class DisentangledV1Transformer(nn.Module):
             )
             decoders.append(
                 TransformerDecoder(
-                    decoder_layers[i], num_decoder_layers, decoder_norm,
+                    decoder_layers[i], num_decoder_layers, decoder_norm_reg,
                     return_intermediate=return_intermediate_dec)
                     )
-        self.decoders = nn.ModuleList(decoders)
+        self.decoders_reg = nn.ModuleList(decoders)
 
         self._reset_parameters()
 
@@ -443,23 +450,33 @@ class DisentangledV1Transformer(nn.Module):
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
-    def forward(self, src, mask, query_embed, pos_embed):
+    def forward(self, src, mask, query_embeds, pos_embed):
         # flatten NxCxHxW to HWxNxC
         bs, c, h, w = src.shape
         src = src.flatten(2).permute(2, 0, 1)
         pos_embed = pos_embed.flatten(2).permute(2, 0, 1)
-        query_embed_list = query_embed.split(query_embed.shape[0] // 4, dim=0)
-        query_embed_list = [embed.unsqueeze(1).repeat(1, bs, 1) for embed in query_embed_list]
+
+
+        query_embed_cls = query_embeds[0].unsqueeze(1).repeat(1, bs, 1)
+        query_embed_reg = query_embeds[1].unsqueeze(1).repeat(1, bs, 1)
         mask = mask.flatten(1)
 
-        tgt = torch.zeros_like(query_embed)
+        tgt_cls = torch.zeros_like(query_embed_cls)
+        tgt_reg = torch.zeros_like(query_embed_reg // 4)
         memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
+        hs_cls = self.decoder_cls(tgt_cls, memory, memory_key_padding_mask=mask,
+                          pos=pos_embed, query_pos=query_embed_cls).transpose(1, 2)
         hss = []
+        hss.append(hs_cls)
+        
+        query_embed_reg_list = query_embed_reg.split(query_embed_reg.shape[0] // 4, dim=0)
+        query_embed_reg_list = [embed.unsqueeze(1).repeat(1, bs, 1) for embed in query_embed_reg_list]
+
         for i in range(4):
             hss.append(
                 self.decoders[i](
-                    tgt, memory, memory_key_padding_mask=mask,
-                    pos=pos_embed, query_pos=query_embed_list[i]).transpose(1, 2)
+                    tgt_reg, memory, memory_key_padding_mask=mask,
+                    pos=pos_embed, query_pos=query_embed_reg_list[i]).transpose(1, 2)
                 )
         return hss, memory.permute(1, 2, 0).view(bs, c, h, w)
         
@@ -484,6 +501,20 @@ def build_transformer(args):
 
 def build_clsdec_regdec_transformer(args):
     return ClsDecRegDecTransformer(
+        d_model=args.hidden_dim,
+        dropout=args.dropout,
+        nhead=args.nheads,
+        dim_feedforward=args.dim_feedforward,
+        num_encoder_layers=args.enc_layers,
+        num_decoder_layers=args.dec_layers,
+        normalize_before=args.pre_norm,
+        return_intermediate_dec=True,
+        args=args,
+    )
+
+
+def build_disentangled_v1_transformer(args):
+    return DisentangledV1Transformer(
         d_model=args.hidden_dim,
         dropout=args.dropout,
         nhead=args.nheads,

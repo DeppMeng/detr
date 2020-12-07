@@ -15,7 +15,7 @@ from .backbone import build_backbone
 from .matcher import build_matcher
 from .segmentation import (DETRsegm, PostProcessPanoptic, PostProcessSegm,
                            dice_loss, sigmoid_focal_loss)
-from .transformer import build_transformer, build_clsdec_regdec_transformer
+from .transformer import build_transformer, build_clsdec_regdec_transformer, build_disentangled_v1_transformer
 
 
 class DETR(nn.Module):
@@ -45,7 +45,10 @@ class DETR(nn.Module):
         hidden_dim = transformer.d_model
         self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
         self.sine_query_embed_mode = args.sine_query_embed_mode
-        self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
+        if args.disentangled_regdec_v1:
+            self.bbox_embed = DisentangledMLP(hidden_dim, hidden_dim, 4, 3, 4)
+        else:
+            self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
 
         if sine_query_embed_v3 == False and sine_query_embed_v4 == False:
             if args.clsdec_regdec:
@@ -152,10 +155,15 @@ class DETR(nn.Module):
             else:
                 obj_query_input = self.query_embed.weight
         
-        if self.args.clsdec_regdec:
+        if self.args.clsdec_regdec or self.args.disentangled_regdec_v1:
             # Need to be refined, does not consider the fixed sine position embedding case here.
-            hs_cls, hs_reg = self.transformer(self.input_proj(src), mask, [self.query_embed_cls.weight,
+            hss = self.transformer(self.input_proj(src), mask, [self.query_embed_cls.weight,
             self.query_embed_reg.weight], pos[-1])[0]
+            hs_cls = hss[0]
+            if self.args.disentangled_regdec_v1:
+                hs_reg = hss[1:]
+            else:
+                hs_reg = hss[-1]
             outputs_class = self.class_embed(hs_cls)
             outputs_coord = self.bbox_embed(hs_reg).sigmoid()
         else:
@@ -404,6 +412,31 @@ class MLP(nn.Module):
         return x
 
 
+class DisentangledMLP(nn.Module):
+    """ Very simple multi-layer perceptron (also called FFN)"""
+
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layers, num_groups):
+        super().__init__()
+        self.num_layers = num_layers
+        input_dim = input_dim // num_groups
+        hidden_dim = hidden_dim // num_groups
+        output_dim = output_dim // num_groups
+        h = [hidden_dim] * (num_layers - 1)
+        ext_layers = []
+        for i in range(num_groups):
+            ext_layers.append(
+                nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim]))
+            )
+        self.ext_layers = nn.ModuleList(ext_layers)
+
+    def forward(self, x):
+        for ext_i, ext_layer in enumerate(self.ext_layers):
+            for i, layer in enumerate(ext_layer):
+                x[ext_i] = F.relu(layer(x[ext_i])) if i < self.num_layers - 1 else layer(x[ext_i])
+        x = torch.cat(x, dim=1)
+        return x
+
+
 def build(args):
     # the `num_classes` naming here is somewhat misleading.
     # it indeed corresponds to `max_obj_id + 1`, where max_obj_id
@@ -425,8 +458,8 @@ def build(args):
     if args.clsdec_regdec:
         transformer = build_clsdec_regdec_transformer(args)
     elif args.disentangled_regdec_v1:
-        # transformer = build_disentangled_v1_transformer(args)
-        raise NotImplementedError('The V2 version is not supported yet.')
+        transformer = build_disentangled_v1_transformer(args)
+        # raise NotImplementedError('The V1 version is not supported yet.')
     elif args.disentangled_regdec_v2:
         raise NotImplementedError('The V2 version is not supported yet.')
         # reg_transformer = build_disentangled_v2_transformer(args)
