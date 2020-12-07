@@ -171,7 +171,7 @@ class DETR(nn.Module):
             outputs_class = self.class_embed(hs)
             outputs_coord = self.bbox_embed(hs).sigmoid()
 
-        print(outputs_coord[0].shape)
+        # print(outputs_coord[0].shape)
 
         if self.args.pred_xyxy:
             for output_corrd in outputs_coord:
@@ -411,6 +411,8 @@ class MLP(nn.Module):
     def forward(self, x):
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
+            
+        print(x.shape)
         return x
 
 
@@ -435,7 +437,8 @@ class DisentangledMLP(nn.Module):
         for ext_i, ext_layer in enumerate(self.ext_layers):
             for i, layer in enumerate(ext_layer):
                 x[ext_i] = F.relu(layer(x[ext_i])) if i < self.num_layers - 1 else layer(x[ext_i])
-        x = torch.cat(x, dim=2)
+        x = torch.cat(x, dim=0)
+        print(x.shape)
         return x
 
 
