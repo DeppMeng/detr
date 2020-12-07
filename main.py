@@ -132,6 +132,10 @@ def get_args_parser():
     
     parser.add_argument('--dec_pos_transv1', action='store_true')
     parser.add_argument('--pose_concat1x1_init_mode', default='eye', type=str)
+
+    # Xmin, Ymin, Xmax, Ymax prediction format
+    parser.add_argument('--pred_xyxy', action='store_true')
+
     return parser
 
 
