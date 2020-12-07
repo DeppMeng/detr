@@ -144,7 +144,7 @@ class DETR(nn.Module):
         src, mask = features[-1].decompose()
         assert mask is not None
 
-        if not args.clsdec_regdec:
+        if not self.args.clsdec_regdec:
             if self.objquery_trans:
                 obj_query_input = self.obj_trans(self.query_embed.weight.T).T
             elif self.objquery_transv2:
