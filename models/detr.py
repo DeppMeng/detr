@@ -155,7 +155,7 @@ class DETR(nn.Module):
             else:
                 obj_query_input = self.query_embed.weight
         
-        if self.args.clsdec_regdec or self.args.disentangled_regdec_v1:
+        if self.args.clsdec_regdec:
             # Need to be refined, does not consider the fixed sine position embedding case here.
             hss = self.transformer(self.input_proj(src), mask, [self.query_embed_cls.weight,
             self.query_embed_reg.weight], pos[-1])[0]
@@ -455,12 +455,12 @@ def build(args):
 
     backbone = build_backbone(args)
 
-    if args.clsdec_regdec:
+    if args.clsdec_regdec and not args.disentangled_regdec_v1:
         transformer = build_clsdec_regdec_transformer(args)
-    elif args.disentangled_regdec_v1:
+    elif args.clsdec_regdec and args.disentangled_regdec_v1:
         transformer = build_disentangled_v1_transformer(args)
         # raise NotImplementedError('The V1 version is not supported yet.')
-    elif args.disentangled_regdec_v2:
+    elif args.clsdec_regdec and args.disentangled_regdec_v2:
         raise NotImplementedError('The V2 version is not supported yet.')
         # reg_transformer = build_disentangled_v2_transformer(args)
     else:
