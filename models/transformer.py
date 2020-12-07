@@ -458,6 +458,7 @@ class DisentangledV1Transformer(nn.Module):
 
         query_embed_cls = query_embeds[0].unsqueeze(1).repeat(1, bs, 1)
         query_embed_reg = query_embeds[1]
+        print(query_embed_reg.shape)
         mask = mask.flatten(1)
 
         tgt_cls = torch.zeros_like(query_embed_cls)
