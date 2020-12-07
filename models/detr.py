@@ -42,10 +42,7 @@ class DETR(nn.Module):
         sine_query_embed_v4 = args.sine_query_embedv4
         self.num_queries = args.num_queries
         self.transformer = transformer
-        if args.clsdec_regdec:
-            hidden_dim = transformer[0].d_model
-        else:
-            hidden_dim = transformer.d_model
+        hidden_dim = transformer.d_model
         self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
         self.sine_query_embed_mode = args.sine_query_embed_mode
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
