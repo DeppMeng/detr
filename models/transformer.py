@@ -474,7 +474,7 @@ class DisentangledV1Transformer(nn.Module):
 
         for i in range(4):
             hss.append(
-                self.decoders[i](
+                self.decoders_reg[i](
                     tgt_reg, memory, memory_key_padding_mask=mask,
                     pos=pos_embed, query_pos=query_embed_reg_list[i]).transpose(1, 2)
                 )
