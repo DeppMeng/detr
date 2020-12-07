@@ -62,6 +62,8 @@ class DETR(nn.Module):
         self.objquery_trans = args.objquery_trans
         self.objquery_transv2 = args.objquery_transv2
         self.objquery_transv3 = args.objquery_transv3
+
+        self.args = args
         
         if self.objquery_trans:
             self.obj_trans = nn.Linear(100, 100, bias=False)
@@ -147,6 +149,9 @@ class DETR(nn.Module):
 
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()
+        if self.args.pred_xyxy:
+            for output_corrd in outputs_coord:
+                output_corrd = box_ops.box_xyxy_to_cxcywh(output_corrd)
         out = {'pred_logits': outputs_class[-1], 'pred_boxes': outputs_coord[-1]}
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord)
