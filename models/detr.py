@@ -171,7 +171,7 @@ class DETR(nn.Module):
             outputs_class = self.class_embed(hs)
             outputs_coord = self.bbox_embed(hs).sigmoid()
 
-            print(outputs_coord[0].shape)
+        print(outputs_coord[0].shape)
 
         if self.args.pred_xyxy:
             for output_corrd in outputs_coord:
