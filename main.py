@@ -140,7 +140,8 @@ def get_args_parser():
     parser.add_argument('--clsdec_regdec', action='store_true')
 
     # Disentangled decoder for regression 4 offsets
-    parser.add_argument('--disentangled_regdec', action='store_true')
+    parser.add_argument('--disentangled_regdec_v1', action='store_true')
+    parser.add_argument('--disentangled_regdec_v2', action='store_true')
 
     return parser
 

@@ -15,7 +15,7 @@ from .backbone import build_backbone
 from .matcher import build_matcher
 from .segmentation import (DETRsegm, PostProcessPanoptic, PostProcessSegm,
                            dice_loss, sigmoid_focal_loss)
-from .transformer import build_transformer
+from .transformer import build_transformer, build_clsdec_regdec_transformer
 
 
 class DETR(nn.Module):
@@ -157,8 +157,8 @@ class DETR(nn.Module):
         
         if self.args.clsdec_regdec:
             # Need to be refined, does not consider the fixed sine position embedding case here.
-            hs_cls = self.transformer[0](self.input_proj(src), mask, self.query_embed_cls.weight, pos[-1])[0]
-            hs_reg = self.transformer[1](self.input_proj(src), mask, self.query_embed_reg.weight, pos[-1])[0]
+            hs_cls, hs_reg = self.transformer(self.input_proj(src), mask, [self.query_embed_cls.weight,
+            self.query_embed_reg.weight], pos[-1])[0]
             outputs_class = self.class_embed(hs_cls)
             outputs_coord = self.bbox_embed(hs_reg).sigmoid()
         else:
@@ -426,9 +426,13 @@ def build(args):
     backbone = build_backbone(args)
 
     if args.clsdec_regdec:
-        cls_transformer = build_transformer(args)
-        reg_transformer = build_transformer(args)
-        transformer = nn.ModuleList([cls_transformer, reg_transformer])
+        transformer = build_clsdec_regdec_transformer(args)
+    elif args.disentangled_regdec_v1:
+        # transformer = build_disentangled_v1_transformer(args)
+        raise NotImplementedError('The V2 version is not supported yet.')
+    elif args.disentangled_regdec_v2:
+        raise NotImplementedError('The V2 version is not supported yet.')
+        # reg_transformer = build_disentangled_v2_transformer(args)
     else:
         transformer = build_transformer(args)
 
