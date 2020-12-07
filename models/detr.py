@@ -435,7 +435,7 @@ class DisentangledMLP(nn.Module):
         for ext_i, ext_layer in enumerate(self.ext_layers):
             for i, layer in enumerate(ext_layer):
                 x[ext_i] = F.relu(layer(x[ext_i])) if i < self.num_layers - 1 else layer(x[ext_i])
-        x = torch.cat(x, dim=1)
+        x = torch.cat(x, dim=2)
         return x
 
 
