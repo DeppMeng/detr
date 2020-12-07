@@ -213,10 +213,12 @@ class TransformerDecoderLayer(nn.Module):
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
                  activation="relu", normalize_before=False, dec_pos_concat1x1=False,
                  dec_pos_concat1x1_mode=0, dec_pos_concat1x1_bias=False, dec_pos_transv1=False,
-                 pose_concat1x1_init_mode='eye'):
+                 pose_concat1x1_init_mode='eye', manual_kvdim=False):
         super().__init__()
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
-        self.multihead_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
+        self.multihead_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout,
+                                                kdim=d_model * 4 if manual_kvdim else None,
+                                                vdim=d_model * 4 if manual_kvdim else None)
         # Implementation of Feedforward model
         self.linear1 = nn.Linear(d_model, dim_feedforward)
         self.dropout = nn.Dropout(dropout)
@@ -419,7 +421,7 @@ class DisentangledV1Transformer(nn.Module):
 
         decoder_layer_cls = TransformerDecoderLayer(d_model, nhead, dim_feedforward,
                                                 dropout, activation, normalize_before, args.dec_pos_concat1x1, args.dec_pos_concat1x1_mode, args.dec_pos_concat1x1_bias,
-                                                args.dec_pos_transv1, args.pose_concat1x1_init_mode)
+                                                args.dec_pos_transv1, args.pose_concat1x1_init_mode, manual_kvdim=True)
         self.decoder_cls = TransformerDecoder(decoder_layer_cls, num_decoder_layers, decoder_norm_cls,
                                           return_intermediate=return_intermediate_dec)
         decoder_layers = []
