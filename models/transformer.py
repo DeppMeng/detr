@@ -294,9 +294,6 @@ class TransformerDecoderLayer(nn.Module):
             key_fused = self.cross_attn_key_pos_trans(torch.cat([memory, pos], dim=2))
         else:
             key_fused = self.with_pos_embed(memory, pos)
-        print(query_fused.shape)
-        print(key_fused.shape)
-        print(memory.shape)
         tgt2 = self.multihead_attn(query=query_fused,
                                    key=key_fused,
                                    value=memory, attn_mask=memory_mask,
