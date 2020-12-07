@@ -42,7 +42,10 @@ class DETR(nn.Module):
         sine_query_embed_v4 = args.sine_query_embedv4
         self.num_queries = args.num_queries
         self.transformer = transformer
-        hidden_dim = transformer.d_model
+        if args.clsdec_regdec:
+            hidden_dim = transformer[0].d_model
+        else:
+            hidden_dim = transformer.d_model
         self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
         self.sine_query_embed_mode = args.sine_query_embed_mode
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
@@ -145,10 +148,16 @@ class DETR(nn.Module):
         else:
             obj_query_input = self.query_embed.weight
         
-        hs = self.transformer(self.input_proj(src), mask, obj_query_input, pos[-1])[0]
+        if self.args.clsdec_regdec:
+            hs_cls = self.transformer[0](self.input_proj(src), mask, obj_query_input, pos[-1])[0]
+            hs_reg = self.transformer[1](self.input_proj(src), mask, obj_query_input, pos[-1])[0]
+            outputs_class = self.class_embed(hs_cls)
+            outputs_coord = self.bbox_embed(hs_reg).sigmoid()
+        else:
+            hs = self.transformer(self.input_proj(src), mask, obj_query_input, pos[-1])[0]
+            outputs_class = self.class_embed(hs)
+            outputs_coord = self.bbox_embed(hs).sigmoid()
 
-        outputs_class = self.class_embed(hs)
-        outputs_coord = self.bbox_embed(hs).sigmoid()
         if self.args.pred_xyxy:
             for output_corrd in outputs_coord:
                 output_corrd = box_ops.box_xyxy_to_cxcywh(output_corrd)
@@ -408,7 +417,12 @@ def build(args):
 
     backbone = build_backbone(args)
 
-    transformer = build_transformer(args)
+    if args.clsdec_regdec:
+        cls_transformer = build_transformer(args)
+        reg_transformer = build_transformer(args)
+        transformer = [cls_transformer, reg_transformer]
+    else:
+        transformer = build_transformer(args)
 
     model = DETR(
         backbone,

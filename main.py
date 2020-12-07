@@ -136,6 +136,9 @@ def get_args_parser():
     # Xmin, Ymin, Xmax, Ymax prediction format
     parser.add_argument('--pred_xyxy', action='store_true')
 
+    # Two decoder for classification and regression separately
+    parser.add_argument('--clsdec_regdec', action='store_true')
+
     return parser
 
 
