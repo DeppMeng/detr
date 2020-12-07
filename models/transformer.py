@@ -424,7 +424,7 @@ class DisentangledV1Transformer(nn.Module):
 
         decoder_layer_cls = TransformerDecoderLayer(d_model, nhead, dim_feedforward,
                                                 dropout, activation, normalize_before, args.dec_pos_concat1x1, args.dec_pos_concat1x1_mode, args.dec_pos_concat1x1_bias,
-                                                args.dec_pos_transv1, args.pose_concat1x1_init_mode, manual_kvdim=True)
+                                                args.dec_pos_transv1, args.pose_concat1x1_init_mode)
         self.decoder_cls = TransformerDecoder(decoder_layer_cls, num_decoder_layers, decoder_norm_cls,
                                           return_intermediate=return_intermediate_dec)
         decoder_layers = []
@@ -435,7 +435,7 @@ class DisentangledV1Transformer(nn.Module):
                     d_model // 4, nhead // 4, dim_feedforward // 4,
                     dropout, activation, normalize_before, args.dec_pos_concat1x1,
                     args.dec_pos_concat1x1_mode, args.dec_pos_concat1x1_bias,
-                    args.dec_pos_transv1, args.pose_concat1x1_init_mode)
+                    args.dec_pos_transv1, args.pose_concat1x1_init_mode, manual_kvdim=True)
             )
             decoders.append(
                 TransformerDecoder(
