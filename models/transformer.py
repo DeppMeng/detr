@@ -463,7 +463,7 @@ class DisentangledV1Transformer(nn.Module):
 
         tgt_cls = torch.zeros_like(query_embed_cls)
         tgt_shape = tgt_cls.shape
-        tgt_reg = torch.zeros_like((tgt_shape[0], tgt_shape[1], tgt_shape[2] // 4))
+        tgt_reg = torch.zeros_like(torch.tensor(tgt_shape[0], tgt_shape[1], tgt_shape[2] // 4))
         memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
         hs_cls = self.decoder_cls(tgt_cls, memory, memory_key_padding_mask=mask,
                           pos=pos_embed, query_pos=query_embed_cls).transpose(1, 2)
